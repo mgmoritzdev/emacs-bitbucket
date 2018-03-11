@@ -1,25 +1,5 @@
 (require 'oauth2)
 
-(defvar moritz/bitbucket--v1 "https://api.bitbucket.org/1.0/")
-(defvar moritz/bitbucket--v2 "https://api.bitbucket.org/2.0/")
-(setq moritz/bitbucket--token
-      (oauth2-auth-and-store "https://bitbucket.org/site/oauth2/authorize"
-                             "https://bitbucket.org/site/oauth2/access_token"
-                             nil
-                             "S46SAPrK8gvfVRPuXy"
-                             "wWpcJEy6QUfWp2yCHf88jWUmJBQATv9k"
-                             "https://localhost:5000"))
-
-(oauth2-refresh-access moritz/bitbucket--token)
-
-(defun moritz/list-pull-requests (user repo)
-  "List bitbucket pullrequests for user and repo"
-  (let ((url-request-method "GET"))
-    (oauth2-url-retrieve
-     moritz/bitbucket--token
-     (concat moritz/bitbucket--v2 "repositories/" user "/" repo "/pullrequests")
-     'parse-pull-requests-response)))
-
 (defun moritz/get-repository (user callback)
   "List bitbucket user's repositories"
   (let ((url-request-method "GET")
@@ -38,12 +18,6 @@
      (concat moritz/bitbucket--v2 (format endpoint user))
      callback)))
 
-(defun parse-pull-requests-response (result)
-  (let ((request-data (moritz/parse-json))
-        (pr-titles '()))
-    (mapcar (lambda (element)
-              (push (format "%s" (cdr (assoc 'title element))) pr-titles))
-            (cdr (assoc 'values request-data)))))
 
 (defun moritz/parse-repositories (result)
   (let ((request-data (moritz/parse-json))
@@ -54,37 +28,16 @@
     repo-names))
 
 
-
-(defun moritz/select-pr (result)
-  (beginning-of-buffer)
-  (search-forward "\n\n")
-  (let ((request-data (json-read))
-        (repo-names '()))
-    (let ((data (append '() request-data)))
-      (mapcar (lambda (element)
-                (push (format "%s" (cdr (assoc 'name element))) repo-names))
-              (cdr (assoc 'values request-data)))
-      (let ((repositories-helm-source
-             `((name . "Select the repository: ")
-               (candidates . ,(mapcar '(lambda (element)
-                                         (cdr (assoc 'name element)))
-                                      (cdr (assoc 'values data))))
-               (action . (lambda (candidate)
-                           (moritz/do-something (moritz/get-repo-uuid (moritz/get-repo-by-name data candidate))))))))
-        (helm :sources '(repositories-helm-source))))))
-
-
 (defun moritz/select-repository (result)
-  (let ((request-data (moritz/parse-json)))
-    (let ((data (append '() request-data)))
-      (let ((repositories-helm-source
-             `((name . "Select the repository: ")
-               (candidates . ,(mapcar '(lambda (element)
-                                         (cdr (assoc 'name element)))
-                                      (cdr (assoc 'values data))))
-               (action . (lambda (candidate)
-                           (moritz/do-something (moritz/get-repo-uuid (moritz/get-repo-by-name data candidate))))))))
-        (helm :sources '(repositories-helm-source))))))
+  (let ((data (moritz/parse-json)))
+    (let ((repositories-helm-source
+           `((name . "Select the repository: ")
+             (candidates . ,(mapcar '(lambda (element)
+                                       (cdr (assoc 'name element)))
+                                    (cdr (assoc 'values data))))
+             (action . (lambda (candidate)
+                         (moritz/do-something (moritz/get-repo-uuid (moritz/get-repo-by-name data candidate))))))))
+      (helm :sources '(repositories-helm-source)))))
 
 
 ;; parsing utils
@@ -108,8 +61,7 @@
 (defun moritz/parse-json ()
   (beginning-of-buffer)
   (search-forward "\n\n")
-  (json-read))
-
+  (append '() (json-read)))
 
 ;; tests and examples
 (moritz/list-pull-requests "ptmtech" "portaltm.server")
