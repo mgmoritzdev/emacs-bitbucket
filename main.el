@@ -71,6 +71,16 @@
         (setq repo-list (cdr repo-list))))
     value))
 
+(defun moritz/get-repo-https-url (repo)
+  (cdr (car (car (append (cdr (assoc 'clone
+                                     (assoc 'links repo)))
+                         nil)))))
+
+(defun moritz/get-repo-ssh-url (repo)
+  (cdr (car (car (cdr (append (cdr (assoc 'clone
+                                          (assoc 'links teste-repo)))
+                              nil))))))
+
 (defun moritz/parse-json ()
   (beginning-of-buffer)
   (search-forward "\n\n")
@@ -100,16 +110,6 @@
 
 
 (insert (format "%s" teste-repo))
-
-(defun moritz/get-repo-https-url (repo)
-  (cdr (car (car (append (cdr (assoc 'clone
-                                     (assoc 'links repo)))
-                         nil)))))
-
-(defun moritz/get-repo-ssh-url (repo)
-  (cdr (car (car (cdr (append (cdr (assoc 'clone
-                                          (assoc 'links teste-repo)))
-                              nil))))))
 
 (get-repo-https-url teste-repo)
 (get-repo-ssh-url teste-repo)
