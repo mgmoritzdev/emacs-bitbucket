@@ -15,7 +15,6 @@
 
 (defun moritz/select-pr (result)
   (let ((data (moritz/parse-json)))
-    (setq moritz/tmp-pr-var data)
     (let ((pr-helm-source
            `((name . "Select a pull-request: ")
              (candidates . ,(mapcar '(lambda (element)
@@ -27,6 +26,7 @@
 
 ;; tests and examples
 (moritz/list-pull-requests "ptmtech" "frontend2")
+(moritz/list-pull-requests "mmoritz" ".emacs.d")
 
 (defun moritz/get-pr-by-name (pr-vector name)
   (let (;; convert vector to list
