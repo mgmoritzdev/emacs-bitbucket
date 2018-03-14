@@ -91,11 +91,15 @@
 
 (moritz/get-repository "mmoritz" 'moritz/select-repository '("test1"))
 
-;; get repo and call a method on it
+;; get repo and call a method on it: get-repo-uuid
 (moritz/get-repository "mmoritz"
                        'moritz/select-repo-and-run-action
                        '((lambda (repo) (message (moritz/get-repo-uuid repo)))))
 
+;; get repo and call a method on it: get-repo-ssh-url
+(moritz/get-repository "mmoritz"
+                       'moritz/select-repo-and-run-action
+                       '((lambda (repo) (message (moritz/get-repo-ssh-url repo)))))
 
 (moritz/get-repository "ptmtech" 'moritz/select-repository)
 
