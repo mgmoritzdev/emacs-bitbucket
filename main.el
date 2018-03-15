@@ -78,7 +78,7 @@
 
 (defun moritz/get-repo-ssh-url (repo)
   (cdr (car (car (cdr (append (cdr (assoc 'clone
-                                          (assoc 'links teste-repo)))
+                                          (assoc 'links repo)))
                               nil))))))
 
 (defun moritz/parse-json ()
@@ -98,6 +98,11 @@
 
 ;; get repo and call a method on it: get-repo-ssh-url
 (moritz/get-repository "mmoritz"
+                       'moritz/select-repo-and-run-action
+                       '((lambda (repo) (message (moritz/get-repo-ssh-url repo)))))
+
+
+(moritz/get-repository "ptmtech"
                        'moritz/select-repo-and-run-action
                        '((lambda (repo) (message (moritz/get-repo-ssh-url repo)))))
 
