@@ -3,7 +3,7 @@
 (defun moritz/get-repository (user callback &optional cbargs)
   "List bitbucket user's repositories"
   (let ((url-request-method "GET")
-        (endpoint "repositories/%s"))
+        (endpoint "repositories/%s?pagelen=10&page=1"))
     (oauth2-url-retrieve
      moritz/bitbucket--token
      (concat moritz/bitbucket--v2 (format endpoint user))
@@ -60,7 +60,6 @@
   (message uuid))
 
 (defun moritz/get-repo-by-name (repos-vector name)
-
   (let ( ;; convert vector to list
         (repo-list (append (cdr (assoc 'values repos-vector)) nil))
         (value))
@@ -86,50 +85,34 @@
   (search-forward "\n\n")
   (append '() (json-read)))
 
+(defun moritz/parse-json ()
+  (beginning-of-buffer)
+  (append '() (buffer-string)))
+
 ;; tests and examples
 ;; (moritz/list-pull-requests "ptmtech" "portaltm.server")
-
-(moritz/get-repository "mmoritz" 'moritz/select-repository '("test1"))
+;; (moritz/get-repository "mmoritz" 'moritz/select-repository '("test1"))
 
 ;; get repo and call a method on it: get-repo-uuid
-(moritz/get-repository "mmoritz"
-                       'moritz/select-repo-and-run-action
-                       '((lambda (repo) (message (moritz/get-repo-uuid repo)))))
+;; (moritz/get-repository "mmoritz"
+;;                        'moritz/select-repo-and-run-action
+;;                        '((lambda (repo) (message (moritz/get-repo-uuid repo)))))
 
 ;; get repo and call a method on it: get-repo-ssh-url
-(moritz/get-repository "mmoritz"
-                       'moritz/select-repo-and-run-action
-                       '((lambda (repo) (message (moritz/get-repo-ssh-url repo)))))
-
-
+;; (moritz/get-repository "mmoritz"
+;;                        'moritz/select-repo-and-run-action
+;;                        '((lambda (repo) (message (moritz/get-repo-ssh-url repo)))))
 (moritz/get-repository "ptmtech"
                        'moritz/select-repo-and-run-action
                        '((lambda (repo) (message (moritz/get-repo-ssh-url repo)))))
 
 (moritz/get-repository "ptmtech" 'moritz/select-repository)
 
-(moritz/get-remote "mmoritz" 'moritz/select-repository)
-(moritz/get-repository "mmoritz" 'moritz/select-repository-and-get-url)
+;; (moritz/get-remote "mmoritz" 'moritz/select-repository)
+;; (moritz/get-repository "mmoritz" 'moritz/select-repository-and-get-url)
 
 
 ;; ideas
 ;; magit - add a button to bitbucket
 ;; pr - list pr's for this project
 ;; diff-pr - show the diff between merging branches
-
-
-(insert (format "%s" teste-repo))
-
-(get-repo-https-url teste-repo)
-(get-repo-ssh-url teste-repo)
-
-(insert (format "%s" (cdr (car (car (cdr (append (cdr (assoc 'clone
-                                                             (assoc 'links teste-repo)))
-                                                 nil)))))))
-
-(href . https://mmoritz@bitbucket.org/mmoritz/flute-friend.git)
-
-[((href . https://mmoritz@bitbucket.org/mmoritz/flute-friend.git) (name . https))
- ((href . git@bitbucket.org:mmoritz/flute-friend.git) (name . ssh))]
-
-(clone . [((href . https://mmoritz@bitbucket.org/mmoritz/flute-friend.git) (name . https)) ((href . git@bitbucket.org:mmoritz/flute-friend.git) (name . ssh))])
