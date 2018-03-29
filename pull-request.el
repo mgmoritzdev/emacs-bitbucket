@@ -17,12 +17,11 @@
         (request-extra-headers (moritz/content-type-header "application/json")))
     (oauth2-url-retrieve
      moritz/bitbucket--token
-     "https://api.bitbucket.org/2.0/repositories/mgmdevptm/testrepo/pullrequests/7/approve"
-     ;; (concat moritz/bitbucket--v2
-     ;;         "repositories/" user
-     ;;         "/" repo
-     ;;         "/pullrequests/" pull-request-id
-     ;;         "/approve")
+     (concat moritz/bitbucket--v2
+             "repositories/" user
+             "/" repo
+             "/pullrequests/" pull-request-id
+             "/approve")
      'moritz/pull-request-approval-result
      nil
      request-method

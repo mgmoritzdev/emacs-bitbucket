@@ -1,0 +1,10 @@
+:bitbucket-v2 = https://api.bitbucket.org/2.0
+:username = mgmdevptm
+:repo-slug = testrepo
+:pull-request-id = 7
+:token := (oauth2-token-access-token moritz/bitbucket--token)
+
+# POST /repositories/{username}/{repo_slug}/pullrequests/{pull_request_id}/approve
+POST :bitbucket-v2/repositories/:username/:repo-slug/pullrequests/:pull-request-id/approve
+Content-Type: application/json
+Authorization: Bearer :token
