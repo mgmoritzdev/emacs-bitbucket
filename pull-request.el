@@ -25,7 +25,7 @@
      'moritz/pull-request-approval-result
      nil
      request-method
-     '()
+     nil
      request-extra-headers)))
 
 (defun moritz/content-type-header (content-type)
