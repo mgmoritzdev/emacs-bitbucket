@@ -13,8 +13,7 @@
 ;; /repositories/{username}/{repo_slug}/pullrequests/{pull_request_id}/approve
 (defun moritz/approve-pull-request (user repo pull-request-id)
   "Approve the selected pull request"
-  (let ((request-method "POST")
-        (request-extra-headers (moritz/content-type-header "application/json")))
+  (let ((request-method "POST"))
     (oauth2-url-retrieve
      moritz/bitbucket--token
      (concat moritz/bitbucket--v2
@@ -25,11 +24,14 @@
      'moritz/pull-request-approval-result
      nil
      request-method
-     nil
-     request-extra-headers)))
+     nil)))
 
 (defun moritz/content-type-header (content-type)
   "Return 'Content-Type: type' header."
+  ;; (let ((request-method "POST")
+  ;;       (request-extra-headers (moritz/content-type-header "application/json"))
+  ;;       (request-data `(("key1" . "value1") ("key2" "value2")))
+  ;;       (do-something)))
   `(("Content-Type" . ,(format "%s" content-type))))
 
 (moritz/content-type-header "application/json")

@@ -85,9 +85,10 @@
   (search-forward "\n\n")
   (append '() (json-read)))
 
-(defun moritz/parse-json ()
-  (beginning-of-buffer)
-  (append '() (buffer-string)))
+;; for debugging purposes in case of Bad Request 400
+;; (defun moritz/parse-json ()
+;;   (beginning-of-buffer)
+;;   (append '() (buffer-string)))
 
 ;; tests and examples
 ;; (moritz/list-pull-requests "ptmtech" "portaltm.server")
