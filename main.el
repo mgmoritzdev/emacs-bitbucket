@@ -104,10 +104,10 @@
 
 (defun moritz/repository-action-pullrequests (args)
   (let ((repo (car args)))
-    (moritz/list-pullrequests (cdr (assoc 'username (assoc 'owner repo)))
-                              (cdr (assoc 'name repo))
-                              'moritz/select-pullrequest-and-run-action
-                              '(moritz/run-pullrequest-action))))
+    (moritz/get-repository-resource
+     (cdr (assoc 'href ( assoc 'pullrequests (assoc 'links repo))))
+     'moritz/select-pullrequest-and-run-action
+     '(moritz/run-pullrequest-action))))
 
 (defun moritz/run-repository-action (repo)
   (moritz/helm-run-assoc-function
@@ -118,8 +118,8 @@
   (let ((repo (moritz/parse-json)))
     (moritz/run-repository-action repo)))
 
-(defun moritz/call-repository-action (action callback &optional cbargs)
-  "List bitbucket pullrequests for user and repo"
+(defun moritz/get-repository-resource (action callback &optional cbargs)
+  "Get repository resource"
   (let ((url-request-method "GET"))
     (oauth2-url-retrieve
      moritz/bitbucket--token
