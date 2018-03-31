@@ -172,7 +172,7 @@
    'moritz/get-pullrequest-link
    `(,pullrequest)))
 
-(moritz/get-pullrequest-action tmp-pullrequest)
+;; (moritz/get-pullrequest-action tmp-pullrequest)
 
 (defun moritz/helm-select-and-run (action-list callback &optional cbargs)
   (let ((pullrequest-actions-helm-source
@@ -190,16 +190,61 @@
                        (funcall candidate cbargs))))))
     (helm :sources '(pullrequest-actions-helm-source))))
 
+(defun pull-request-actions ()
+  "Apply some action in the current repository pull requests.
+The actions can be one of the following:
+  * approve
+  * unapprove
+  * decline (not implemented)
+  * commits (not implemented)
+  * self (not implemented)
+  * comments (not implemented)
+  * merge (not implemented)
+  * html (not implemented)
+  * activity (not implemented)
+  * diff (not implemented)
+  * statuses (not implemented)
+"
+  (interactive)
+  (let  ((repo-data (get-user-and-repo-slug)))
+    (moritz/list-pullrequests (cdr (assoc 'user repo-data))
+                              (cdr (assoc 'repo-slug repo-data))
+                              'moritz/select-pullrequest-and-run-action
+                              '(moritz/run-pullrequest-action))))
+
+(defun get-user-and-repo-slug ()
+  (let ((default-directory (vc-root-dir))
+        (git-ssh-regexp "^git\@")
+        (git-https-regexp "^https"))
+    (let ((remotes (split-string (shell-command-to-string "git remote -v")))
+          (remote nil))
+      (while remotes
+        (let ((test-remote (car remotes)))
+          (setq remotes (cdr remotes))
+          (cond ((string= test-remote "origin")
+                 (setq remote (car remotes))))))
+      (cond ((string-match-p git-ssh-regexp remote)
+             (save-match-data
+               (and (string-match "\\`.+:\\([^:]+\\)\/\\([^\/]+\\)\.git\\'" remote)
+                    (let ((user (match-string 1 remote))
+                          (repo-slug (match-string 2 remote)))
+                      `((user . ,user)
+                        (repo-slug . ,repo-slug))
+                      ))))
+            ((string-match-p git-https-regexp remote)
+             (save-match-data
+               (and (string-match "\\`.+\/\\([^\/]+\\)\/\\([^\/]+\\)\\'" remote)
+                    (let ((user (match-string 1 remote))
+                          (repo-slug (replace-regexp-in-string "\.git" "" (match-string 2 remote))))
+                      `((user . ,user)
+                        (repo-slug . ,repo-slug))))))))))
+
 ;; tests and examples
-(moritz/list-pullrequests "mgmdevptm" "testrepo"
-                          'moritz/select-pullrequest-and-run-action
-                          '(moritz/run-pullrequest-action))
+;; (moritz/list-pullrequests "mgmdevptm" "testrepo"
+;;                           'moritz/select-pullrequest-and-run-action
+;;                           '(moritz/post-example-with-json))
 
-(moritz/list-pullrequests "mgmdevptm" "testrepo"
-                          'moritz/select-pullrequest-and-run-action
-                          '(moritz/post-example-with-json))
-
-(moritz/list-pullrequests "mmoritz" ".emacs.d")
+;; (moritz/list-pullrequests "mmoritz" ".emacs.d")
 ;; (moritz/approve-pullrequest "mgmdevptm" "testrepo" "7")
 
 
@@ -269,4 +314,4 @@
 ;;  ]
 
 
-(insert (format "%s" tmp-pullrequest))
+;; (insert (format "%s" tmp-pullrequest))
