@@ -15,3 +15,7 @@ Authorization: Bearer :token
 # GET /repositories/{username}/{repo_slug}
 GET :bitbucket-v2/repositories/:username/:repo-slug
 Authorization: Bearer :token
+
+# GET /repositories/{username}/{repo_slug}/commits
+GET :bitbucket-v2/repositories/:username/:repo-slug/commits
+Authorization: Bearer :token
