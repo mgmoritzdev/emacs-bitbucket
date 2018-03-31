@@ -29,7 +29,10 @@
   (state . OPEN)
   (closed_by)
   (summary (raw . "") (markup . markdown) (html . ) (type . rendered))
-  (source (commit (hash . 319ba1e39647) (links (self (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/commit/319ba1e39647)))) (repository (links (self (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2)) (html (href . https://bitbucket.org/ptmtech/frontend2)) (avatar (href . https://bitbucket.org/ptmtech/frontend2/avatar/32/))) (type . repository) (name . frontend2) (full_name . ptmtech/frontend2) (uuid . {9a1a1aa2-67af-4f1e-9e27-f30b258bebee})) (branch (name . fix-admin-fontes-multiple-search)))
+  (source
+   (commit (hash . 319ba1e39647) (links (self (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/commit/319ba1e39647))))
+   (repository (links (self (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2)) (html (href . https://bitbucket.org/ptmtech/frontend2)) (avatar (href . https://bitbucket.org/ptmtech/frontend2/avatar/32/))) (type . repository) (name . frontend2) (full_name . ptmtech/frontend2) (uuid . {9a1a1aa2-67af-4f1e-9e27-f30b258bebee}))
+   (branch (name . fix-admin-fontes-multiple-search)))
   (comment_count . 0)
   (author (username . dhiegohenrique) (display_name . Dhiego Henrique) (type . user) (uuid . {ef6b5cd7-7dfc-498d-a596-3316a179c36a}) (links (self (href . https://api.bitbucket.org/2.0/users/dhiegohenrique)) (html (href . https://bitbucket.org/dhiegohenrique/)) (avatar (href . https://bitbucket.org/account/dhiegohenrique/avatar/32/))))
   (created_on . 2018-03-08T19:03:37.688441+00:00)

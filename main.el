@@ -125,9 +125,10 @@
 
 (defun moritz/run-repository-action (repo)
   (moritz/helm-run-assoc-function
-   '(("pull requests" . moritz/repository-action-pullrequests)
-     ("commits" . moritz/repository-action-commits)
-     ("branches" . moritz/repository-action-branches))
+   '(("List pull requests" . moritz/repository-action-pullrequests)
+     ("Create pull request" . moritz/repository-action-create-pullrequest)
+     ("Commits" . moritz/repository-action-commits)
+     ("Branches" . moritz/repository-action-branches))
    `(,repo)))
 
 (defun moritz/parse-and-run-repository-action (result)
@@ -136,12 +137,47 @@
 
 (defun moritz/get-repository-resource (action callback &optional cbargs)
   "Get repository resource"
-  (let ((url-request-method "GET"))
+  (let ((request-method "GET"))
     (oauth2-url-retrieve
      moritz/bitbucket--token
      action
      callback
      cbargs)))
+
+(defun moritz/create-pullrequest-callback (result)
+  (message (format "%s" result)))
+
+;; (cdr (assoc 'href (assoc 'pullrequests (assoc 'links repo))))
+;; (moritz/repository-action-branches repo)
+;; this will not work this way
+(defun moritz/repository-action-create-pullrequest (args)
+  (let ((repo (car args))
+        (pullrequest-url (cdr (assoc 'href (assoc 'pullrequests (assoc 'links repo)))))
+        (source-branch "homolog")
+        (destination-branch "dev")
+        (pullrequest-title "Dummy pull request"))
+    (moritz/post-repository-resource
+     pullrequest-url
+     (json-encode `(("source" . (("branch" . (("name" . ,source-branch)))))
+                    ("destination" . (("branch" . (("name" . ,destination-branch)))))
+                    ("title" . ,pullrequest-title)))
+     `(,(moritz/content-type-header "application/json"))
+     ;; 'moritz/create-pullrequest-callback)))
+     'moritz/diff-result)))
+
+(defun moritz/post-repository-resource (action data headers callback &optional cbargs)
+  "Get repository resource"
+  (let ((request-method "POST")
+        (request-data data)
+        (request-extra-headers headers))
+    (oauth2-url-retrieve
+     moritz/bitbucket--token
+     action
+     callback
+     cbargs
+     request-method
+     request-data
+     request-extra-headers)))
 
 (defun bitbucket-actions ()
   "Apply action on the current repository.
@@ -150,6 +186,8 @@ The actions can be one of the following:
     - approve
     - unapprove
   - commits
+  - branches
+  - merge
 "
   (interactive)
   (let  ((repo-data (get-user-and-repo-slug)))

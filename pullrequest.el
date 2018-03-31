@@ -32,8 +32,8 @@
 (defun moritz/send-post (url data headers callback)
   "Approve the selected pull request"
   (let ((request-method "POST")
-        (request-extra-headers headers)
-        (request-data data))
+        (request-data data)
+        (request-extra-headers headers))
     (oauth2-url-retrieve
      moritz/bitbucket--token
      url
@@ -67,13 +67,37 @@
               (push (format "%s" (cdr (assoc 'title element))) pr-titles))
             (cdr (assoc 'values request-data)))))
 
+(defun moritz/select-commits-and-run-action (result &optional callback)
+  (let ((data (moritz/parse-json)))
+    (let ((commits-helm-source
+           `((name . "Select a commit: ")
+             (candidates . ,(mapcar '(lambda (element)
+                                       `(,(car (split-string
+                                                (cdr (assoc 'raw (assoc 'summary element)))
+                                                "\\\n"))
+                                         . ,element))
+                                    (cdr (assoc 'values data))))
+             (action . (lambda (candidate)
+                         (funcall callback candidate))))))
+      (helm :sources '(commits-helm-source)))))
+
 (defun moritz/select-pullrequest (result)
   (let ((data (moritz/parse-json)))
     (let ((pr-helm-source
            `((name . "Select a pull request: ")
-             (candidates . ,(mapcar '(lambda (element)
-                                       (cdr (assoc 'title element)))
-                                    (cdr (assoc 'values data))))
+             (candidates
+              .
+              ,(mapcar
+                '(lambda (element) `(,(concat
+                                  (cdr (assoc 'name (assoc 'branch (assoc 'source element))))
+                                  " -> "
+                                  (cdr (assoc 'name (assoc 'branch (assoc 'destination element))))
+                                  " "
+                                  (cdr (assoc 'title element))
+                                  )
+                                .
+                                ,element))
+                (cdr (assoc 'values data))))
              (action . (lambda (candidate)
                          (moritz/get-pullrequest-by-name data candidate))))))
       (helm :sources '(pr-helm-source)))))
@@ -82,11 +106,20 @@
   (let ((data (moritz/parse-json)))
     (let ((pr-helm-source
            `((name . "Select a pull request: ")
-             (candidates . ,(mapcar '(lambda (element)
-                                       (cdr (assoc 'title element)))
-                                    (cdr (assoc 'values data))))
+             (candidates
+              .
+              ,(mapcar
+                '(lambda (element) `(,(format
+                                  "\(%s%s%s\) %s"
+                                  (cdr (assoc 'name (assoc 'branch (assoc 'source element))))
+                                  (char-to-string #10r10132)
+                                  (cdr (assoc 'name (assoc 'branch (assoc 'destination element))))
+                                  (cdr (assoc 'title element)))
+                                .
+                                ,element))
+                (cdr (assoc 'values data))))
              (action . (lambda (candidate)
-                         (funcall callback (moritz/get-pullrequest-by-name data candidate)))))))
+                         (funcall callback candidate))))))
       (helm :sources '(pr-helm-source)))))
 
 (defun moritz/get-pullrequest-by-name (pr-vector title)
@@ -109,6 +142,12 @@
 (defun moritz/message-approve-result (result)
   (moritz/request-status
    '(lambda () (message "Pull request approved!"))
+   '(lambda () (let ((data (moritz/parse-json)))
+            (message (cdr (assoc 'message (assoc 'error data))))))))
+
+(defun moritz/message-merge-result (result)
+  (moritz/request-status
+   '(lambda () (message "Merge succeded!"))
    '(lambda () (let ((data (moritz/parse-json)))
             (message (cdr (assoc 'message (assoc 'error data))))))))
 
@@ -163,16 +202,29 @@
    `(,(moritz/content-type-header "application/json"))
    'moritz/message-approve-result))
 
+(defun moritz/pullrequest-merge (args)
+  (let ((pullrequest (car args)))
+    (let ((pullrequest-description (cdr (assoc 'description pullrequest))))
+      (moritz/send-post
+       (moritz/get-pullrequest-link "merge" pullrequest)
+       (json-encode `(("type" . "pullrequest")
+                      ("message" . ,pullrequest-description)))
+       `(,(moritz/content-type-header "application/json"))
+       'message-merge-result)
+      )
+    )
+  )
+
 (defun moritz/run-pullrequest-action (pullrequest)
   (moritz/helm-run-assoc-function
    '(("unapprove" . moritz/pullrequest-unapprove)
      ("approve" . moritz/pullrequest-approve)
      ("diff" . moritz/pullrequest-diff)
+     ("merge" . moritz/pullrequest-merge)
      ;; ("decline" . moritz/pullrequest-decline)
      ;; ("commits" . moritz/pullrequest-commits)
      ;; ("self" . moritz/pullrequest-self)
      ;; ("comments" . moritz/pullrequest-comments)
-     ;; ("merge" . moritz/pullrequest-merge)
      ;; ("html" . moritz/pullrequest-html)
      ;; ("activity" . moritz/pullrequest-activity)
      ;; ("statuses" . moritz/pullrequest-statuses)
