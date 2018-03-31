@@ -127,12 +127,6 @@
      callback
      cbargs)))
 
-;; for debugging purposes in case of Bad Request 400
-;; (defun moritz/parse-json ()
-;;   (beginning-of-buffer)
-;;   (append '() (buffer-string)))
-
-
 (defun bitbucket-actions ()
   "Apply action on the current repository.
 The actions can be one of the following:
@@ -146,41 +140,9 @@ The actions can be one of the following:
                            'moritz/parse-and-run-repository-action)))
 
 ;; tests and examples
-;; (moritz/list-pull-requests "ptmtech" "portaltm.server")
-;; (moritz/list-repository "mmoritz" 'moritz/select-repository '("test1"))
-
-;; get repo and call a method on it: get-repo-uuid
-;; (moritz/list-repository "mmoritz"
-;;                        'moritz/select-repo-and-run-action
-;;                        '((lambda (repo) (message (moritz/get-repo-uuid repo)))))
-
-;; get repo and call a method on it: get-repo-ssh-url
-;; (moritz/list-repository "mmoritz"
-;;                        'moritz/select-repo-and-run-action
-;;                        '((lambda (repo) (message (moritz/get-repo-ssh-url repo)))))
-;; (moritz/list-repository "ptmtech"
-;;                         'moritz/select-repo-and-run-action
-;;                         '((lambda (repo) (message (moritz/get-repo-ssh-url repo)))))
-
-;; (moritz/list-repository "mgmdevptm"
-;;                         'moritz/select-repo-and-run-action
-;;                         '(moritz/run-repository-action))
-
-;; (moritz/get-repository '((user . "mgmdevptm") (repo-slug . "testrepo"))
-;;                        'moritz/parse-and-run-repository-action)
-
-;; (moritz/list-repository "mgmdevptm"
-;;                         'moritz/select-repo-and-run-action
-;;                         '(moritz/run-repository-action))
-
-
-;; (moritz/list-repository "ptmtech" 'moritz/select-repository)
-
-;; (moritz/get-remote "mmoritz" 'moritz/select-repository)
-;; (moritz/list-repository "mmoritz" 'moritz/select-repository-and-get-url)
-
+;; call from a file in some bitbucket repository: M-x bitbucket-actions
 
 ;; ideas
 ;; magit - add a button to bitbucket
-;; pr - list pr's for this project
+;; DONE pr - list pr's for this project
 ;; diff-pr - show the diff between merging branches
