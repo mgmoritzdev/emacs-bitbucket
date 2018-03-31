@@ -6,5 +6,12 @@
 
 # POST /repositories/{username}/{repo_slug}/pullrequests/{pull_request_id}/approve
 POST :bitbucket-v2/repositories/:username/:repo-slug/pullrequests/:pull-request-id/approve
-Content-Type: application/json
+Authorization: Bearer :token
+
+# DELETE /repositories/{username}/{repo_slug}/pullrequests/{pull_request_id}/approve
+DELETE :bitbucket-v2/repositories/:username/:repo-slug/pullrequests/:pull-request-id/approve
+Authorization: Bearer :token
+
+# GET /repositories/{username}/{repo_slug}
+GET :bitbucket-v2/repositories/:username/:repo-slug
 Authorization: Bearer :token
