@@ -24,6 +24,17 @@ Authorization: Bearer :token
 # GET /repositories/{username}/{repo_slug}/refs/branches
 GET :bitbucket-v2/repositories/:username/:repo-slug/refs/branches
 Authorization: Bearer :token
+
 # GET /repositories/{username}/{repo_slug}/diff/{spec}
 GET :bitbucket-v2/repositories/:username/:repo-slug/diff/:commit-hash
 Authorization: Bearer :token
+
+# GET /repositories/{username}/{repo_slug}/pullrequests/{pull_request_id}/diff
+GET :bitbucket-v2/repositories/:username/:repo-slug/pullrequests/:pull-request-id/diff
+Authorization: Bearer :token
+Content-Type: text/plain
+
+# test
+GET https://api.bitbucket.org/2.0/repositories/mgmdevptm/testrepo/diff/mgmdevptm/testrepo:07db936de9e8%0D8a0a91a7cdcc
+Authorization: Bearer :token
+Content-Type: text/plain

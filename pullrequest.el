@@ -16,6 +16,19 @@
      callback
      cbargs)))
 
+(defun moritz/send-get (url headers callback &optional cbargs)
+  "Approve the selected pull request"
+  (let ((request-method "GET")
+        (request-extra-headers headers))
+    (oauth2-url-retrieve
+     moritz/bitbucket--token
+     url
+     callback
+     cbargs
+     request-method
+     nil
+     request-extra-headers)))
+
 (defun moritz/send-post (url data headers callback)
   "Approve the selected pull request"
   (let ((request-method "POST")
@@ -121,6 +134,28 @@
      (moritz/get-pullrequest-link  "approve" pullrequest)
      'moritz/message-unapprove-result)))
 
+(defun moritz/pullrequest-diff (args)
+  (let ((pullrequest (car args)))
+    (moritz/send-get
+     (moritz/get-pullrequest-link "diff" pullrequest)
+     `(,(moritz/content-type-header "text/plain"))
+     'moritz/diff-redirect)))
+
+(defun moritz/diff-redirect (result)
+  (moritz/send-get
+   (elt result 3)
+   `(,(moritz/content-type-header "text/plain"))
+   'moritz/diff-result))
+
+(defun moritz/diff-result (result)
+  (let ((buffer (buffer-string)))
+    (get-buffer-create "* diff *")
+    (switch-to-buffer "* diff *")
+    (erase-buffer)
+    (insert (format "%s" buffer))
+    (moritz/parse-plain-text)
+    (diff-mode)))
+
 (defun moritz/post-example-with-json (pullrequest)
   (moritz/send-post
    (moritz/get-pullrequest-link "approve" pullrequest)
@@ -132,6 +167,7 @@
   (moritz/helm-run-assoc-function
    '(("unapprove" . moritz/pullrequest-unapprove)
      ("approve" . moritz/pullrequest-approve)
+     ("diff" . moritz/pullrequest-diff)
      ;; ("decline" . moritz/pullrequest-decline)
      ;; ("commits" . moritz/pullrequest-commits)
      ;; ("self" . moritz/pullrequest-self)
@@ -139,7 +175,6 @@
      ;; ("merge" . moritz/pullrequest-merge)
      ;; ("html" . moritz/pullrequest-html)
      ;; ("activity" . moritz/pullrequest-activity)
-     ;; ("diff" . moritz/pullrequest-diff)
      ;; ("statuses" . moritz/pullrequest-statuses)
      )
    `(,pullrequest)))
@@ -182,6 +217,7 @@
 The actions can be one of the following:
   * approve
   * unapprove
+  * diff
   * decline (not implemented)
   * commits (not implemented)
   * self (not implemented)
@@ -189,7 +225,6 @@ The actions can be one of the following:
   * merge (not implemented)
   * html (not implemented)
   * activity (not implemented)
-  * diff (not implemented)
   * statuses (not implemented)
 "
   (interactive)
@@ -225,3 +260,11 @@ The actions can be one of the following:
                           (repo-slug (replace-regexp-in-string "\.git" "" (match-string 2 remote))))
                       `((user . ,user)
                         (repo-slug . ,repo-slug))))))))))
+
+(defun moritz/parse-plain-text ()
+  (let ((mark-start (progn
+                      (beginning-of-buffer)
+                      (set-mark (point))
+                      (mark)))
+        (mark-end (search-forward "\n\n")))
+    (kill-region mark-start mark-end)))
