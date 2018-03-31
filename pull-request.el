@@ -2,26 +2,39 @@
 (if (not (boundp 'moritz/bitbucket--v1))
     (load-file (expand-file-name "token.el")))
 
-(defun moritz/list-pull-requests (user repo)
+(if (not (boundp 'moritz/bitbucket--v1))
+    (load-file (expand-file-name "main.el")))
+
+(defun moritz/list-pullrequests (user repo callback &optional cbargs)
   "List bitbucket pullrequests for user and repo"
   (let ((url-request-method "GET"))
     (oauth2-url-retrieve
      moritz/bitbucket--token
      (concat moritz/bitbucket--v2 "repositories/" user "/" repo "/pullrequests")
-     'moritz/select-pr)))
+     callback
+     cbargs)))
 
-;; /repositories/{username}/{repo_slug}/pullrequests/{pull_request_id}/approve
-(defun moritz/approve-pull-request (user repo pull-request-id)
+(defun moritz/send-post (url data headers callback)
   "Approve the selected pull request"
-  (let ((request-method "POST"))
+  (let ((request-method "POST")
+        (request-extra-headers headers)
+        (request-data data))
     (oauth2-url-retrieve
      moritz/bitbucket--token
-     (concat moritz/bitbucket--v2
-             "repositories/" user
-             "/" repo
-             "/pullrequests/" pull-request-id
-             "/approve")
-     'moritz/pull-request-approval-result
+     url
+     callback
+     nil
+     request-method
+     request-data
+     request-extra-headers)))
+
+(defun moritz/send-delete (url callback)
+  "Approve the selected pull request"
+  (let ((request-method "DELETE"))
+    (oauth2-url-retrieve
+     moritz/bitbucket--token
+     url
+     callback
      nil
      request-method
      nil)))
@@ -32,47 +45,163 @@
   ;;       (request-extra-headers (moritz/content-type-header "application/json"))
   ;;       (request-data `(("key1" . "value1") ("key2" "value2")))
   ;;       (do-something)))
-  `(("Content-Type" . ,(format "%s" content-type))))
+  `("Content-Type" . ,(format "%s" content-type)))
 
 (moritz/content-type-header "application/json")
 
-(defun parse-pull-requests-response (result)
+(defun parse-pullrequests-response (result)
   (let ((request-data (moritz/parse-json))
         (pr-titles '()))
     (mapcar (lambda (element)
               (push (format "%s" (cdr (assoc 'title element))) pr-titles))
             (cdr (assoc 'values request-data)))))
 
-(defun moritz/pull-request-approval-result (result)
-  (let ((data (moritz/parse-json)))
-    (message (format "%s" data))))
-
-(defun moritz/select-pr (result)
+(defun moritz/select-pullrequest (result)
   (let ((data (moritz/parse-json)))
     (let ((pr-helm-source
-           `((name . "Select a pull-request: ")
+           `((name . "Select a pull request: ")
              (candidates . ,(mapcar '(lambda (element)
                                        (cdr (assoc 'title element)))
                                     (cdr (assoc 'values data))))
              (action . (lambda (candidate)
-                         (moritz/do-something (moritz/get-repo-uuid (moritz/get-repo-by-name data candidate))))))))
+                         (moritz/get-pullrequest-by-name data candidate))))))
       (helm :sources '(pr-helm-source)))))
 
-(defun moritz/get-pr-by-name (pr-vector name)
+(defun moritz/select-pullrequest-and-run-action (result &optional callback)
+  (let ((data (moritz/parse-json)))
+    (let ((pr-helm-source
+           `((name . "Select a pull request: ")
+             (candidates . ,(mapcar '(lambda (element)
+                                       (cdr (assoc 'title element)))
+                                    (cdr (assoc 'values data))))
+             (action . (lambda (candidate)
+                         (funcall callback (moritz/get-pullrequest-by-name data candidate)))))))
+      (helm :sources '(pr-helm-source)))))
+
+(defun moritz/get-pullrequest-by-name (pr-vector title)
   (let (;; convert vector to list
         (pr-list (append (cdr (assoc 'values pr-vector)) nil))
         (value))
     (while (and pr-list (not value))
       (let ((item (car pr-list)))
-        (if (string= name (cdr (assoc 'name item)))
+        (if (string= title (cdr (assoc 'title item)))
             (setq value item))
         (setq pr-list (cdr pr-list))))
     value))
 
+(defun moritz/request-status (success-callback failure-callback)
+  (let ((status-code-family (* 100 (/ (string-to-number (moritz/http-status-code)) 100))))
+    (cond ((= status-code-family 200) (funcall success-callback))
+          ((= status-code-family 400) (funcall failure-callback))
+          ((= status-code-family 500) (funcall failure-callback)))))
+
+(defun moritz/message-approve-result (result)
+  (moritz/request-status
+   '(lambda () (message "Pull request approved!"))
+   '(lambda () (let ((data (moritz/parse-json)))
+            (message (cdr (assoc 'message (assoc 'error data))))))))
+
+(defun moritz/message-unapprove-result (result)
+  (moritz/request-status
+   '(lambda () (message "Pull request UNapproved!"))
+   '(lambda () (message "Failed to unapprove pull request"))))
+
+(defun moritz/get-pullrequest-link (link-name pullrequest)
+  (cdr (assoc 'href (assoc (intern link-name) (assoc 'links pullrequest)))))
+
+(defun moritz/pullrequest-approve (args)
+  (let ((pullrequest (car args)))
+    (moritz/send-post
+     (moritz/get-pullrequest-link "approve" pullrequest)
+     nil
+     nil
+     'moritz/message-approve-result)))
+
+(defun moritz/pullrequest-unapprove (args)
+  (let ((pullrequest (car args)))
+    (moritz/send-delete
+     (moritz/get-pullrequest-link  "approve" pullrequest)
+     'moritz/message-unapprove-result)))
+
+(defun moritz/post-example-with-json (pullrequest)
+  (moritz/send-post
+   (moritz/get-pullrequest-link "approve" pullrequest)
+   (json-encode '(("key1" . "value1")))
+   `(,(moritz/content-type-header "application/json"))
+   'moritz/message-approve-result))
+
+(defun moritz/run-pullrequest-action (pullrequest)
+  (moritz/helm-run-assoc-function
+   '(("unapprove" . moritz/pullrequest-unapprove)
+     ("approve" . moritz/pullrequest-approve)
+     ;; ("decline" . moritz/pullrequest-decline)
+     ;; ("commits" . moritz/pullrequest-commits)
+     ;; ("self" . moritz/pullrequest-self)
+     ;; ("comments" . moritz/pullrequest-comments)
+     ;; ("merge" . moritz/pullrequest-merge)
+     ;; ("html" . moritz/pullrequest-html)
+     ;; ("activity" . moritz/pullrequest-activity)
+     ;; ("diff" . moritz/pullrequest-diff)
+     ;; ("statuses" . moritz/pullrequest-statuses)
+     )
+   `(,pullrequest)))
+
+;; delete-me
+(defun test-function (msg)
+  (message msg))
+
+(let ((action-pair '(("approve" . test-function))))
+  (funcall (cdr (car action-pair)) (car (car action-pair))))
+
+(funcall (quote test-function) "test")
+;; end of delete-me
+
+
+(defun moritz/get-pullrequest-action (pullrequest)
+  (moritz/helm-select-and-run
+   '("decline"
+     "commits"
+     "self"
+     "comments"
+     "merge"
+     "html"
+     "activity"
+     "diff"
+     "approve"
+     "statuses")
+   'moritz/get-pullrequest-link
+   `(,pullrequest)))
+
+(moritz/get-pullrequest-action tmp-pullrequest)
+
+(defun moritz/helm-select-and-run (action-list callback &optional cbargs)
+  (let ((pullrequest-actions-helm-source
+         `((name . "Select an action: ")
+           (candidates . action-list)
+           (action . (lambda (candidate)
+                       (apply callback candidate cbargs))))))
+    (helm :sources '(pullrequest-actions-helm-source))))
+
+(defun moritz/helm-run-assoc-function (action-list &optional cbargs)
+  (let ((pullrequest-actions-helm-source
+         `((name . "Select an action: ")
+           (candidates . action-list)
+           (action . (lambda (candidate)
+                       (funcall candidate cbargs))))))
+    (helm :sources '(pullrequest-actions-helm-source))))
+
 ;; tests and examples
-(moritz/list-pull-requests "mgmdevptm" "testrepo")
-(moritz/list-pull-requests "mmoritz" ".emacs.d")
-(moritz/approve-pull-request "mgmdevptm" "testrepo" "7")
+(moritz/list-pullrequests "mgmdevptm" "testrepo"
+                          'moritz/select-pullrequest-and-run-action
+                          '(moritz/run-pullrequest-action))
+
+(moritz/list-pullrequests "mgmdevptm" "testrepo"
+                          'moritz/select-pullrequest-and-run-action
+                          '(moritz/post-example-with-json))
+
+(moritz/list-pullrequests "mmoritz" ".emacs.d")
+;; (moritz/approve-pullrequest "mgmdevptm" "testrepo" "7")
+
 
 ;; data structure
 ;; list-prs
@@ -81,11 +210,32 @@
 
 ;; [(
 ;;   (description . )
-;;   (links (decline (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167/decline)) (commits (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167/commits)) (self (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167)) (comments (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167/comments)) (merge (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167/merge)) (html (href . https://bitbucket.org/ptmtech/frontend2/pull-requests/167)) (activity (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167/activity)) (diff (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167/diff)) (approve (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167/approve)) (statuses (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167/statuses)))
+;;   (links
+;;    (decline (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167/decline))
+;;    (commits (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167/commits))
+;;    (self (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167))
+;;    (comments (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167/comments))
+;;    (merge (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167/merge))
+;;    (html (href . https://bitbucket.org/ptmtech/frontend2/pull-requests/167))
+;;    (activity (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167/activity))
+;;    (diff (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167/diff))
+;;    (approve (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167/approve))
+;;    (statuses (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/pullrequests/167/statuses)))
 ;;   (title . WEB-726 #time 5h #comment Fix admin fontes multiple search by nomeClirea)
 ;;   (close_source_branch . t)
 ;;   (merge_commit)
-;;   (destination (commit (hash . 11adb135a350) (links (self (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/commit/11adb135a350)))) (repository (links (self (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2)) (html (href . https://bitbucket.org/ptmtech/frontend2)) (avatar (href . https://bitbucket.org/ptmtech/frontend2/avatar/32/))) (type . repository) (name . frontend2) (full_name . ptmtech/frontend2) (uuid . {9a1a1aa2-67af-4f1e-9e27-f30b258bebee})) (branch (name . development)))
+;;   (destination
+;;    (commit (hash . 11adb135a350) (links (self (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2/commit/11adb135a350))))
+;;    (repository
+;;     (links
+;;      (self (href . https://api.bitbucket.org/2.0/repositories/ptmtech/frontend2))
+;;      (html (href . https://bitbucket.org/ptmtech/frontend2))
+;;      (avatar (href . https://bitbucket.org/ptmtech/frontend2/avatar/32/)))
+;;     (type . repository)
+;;     (name . frontend2)
+;;     (full_name . ptmtech/frontend2)
+;;     (uuid . {9a1a1aa2-67af-4f1e-9e27-f30b258bebee}))
+;;    (branch (name . development)))
 ;;   (state . OPEN)
 ;;   (closed_by)
 ;;   (summary (raw . "") (markup . markdown) (html . ) (type . rendered))
@@ -117,3 +267,6 @@
 ;;   (id . 166)
 ;;   (task_count . 0))
 ;;  ]
+
+
+(insert (format "%s" tmp-pullrequest))

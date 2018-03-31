@@ -1,4 +1,6 @@
 (require 'oauth2)
+(if (not (boundp 'moritz/bitbucket--v1))
+    (load-file (expand-file-name "token.el")))
 
 (defun moritz/get-repository (user callback &optional cbargs)
   "List bitbucket user's repositories"
@@ -84,6 +86,9 @@
   (beginning-of-buffer)
   (search-forward "\n\n")
   (append '() (json-read)))
+
+(defun moritz/http-status-code ()
+  (message (buffer-substring 10 13)))
 
 ;; for debugging purposes in case of Bad Request 400
 ;; (defun moritz/parse-json ()
