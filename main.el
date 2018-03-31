@@ -109,9 +109,17 @@
      'moritz/select-pullrequest-and-run-action
      '(moritz/run-pullrequest-action))))
 
+(defun moritz/repository-action-commits (args)
+  (let ((repo (car args)))
+    (moritz/get-repository-resource
+     (cdr (assoc 'href ( assoc 'commits (assoc 'links repo))))
+     'moritz/select-commits-and-run-action
+     '(moritz/run-commits-action))))
+
 (defun moritz/run-repository-action (repo)
   (moritz/helm-run-assoc-function
-   '(("pull requests" . moritz/repository-action-pullrequests))
+   '(("pull requests" . moritz/repository-action-pullrequests)
+     ("commits" . moritz/repository-action-commits))
    `(,repo)))
 
 (defun moritz/parse-and-run-repository-action (result)
@@ -133,6 +141,7 @@ The actions can be one of the following:
   - pull requests
     - approve
     - unapprove
+  - commits
 "
   (interactive)
   (let  ((repo-data (get-user-and-repo-slug)))
