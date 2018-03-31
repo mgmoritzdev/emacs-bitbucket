@@ -116,10 +116,18 @@
      'moritz/select-commits-and-run-action
      '(moritz/run-commits-action))))
 
+(defun moritz/repository-action-branches (args)
+  (let ((repo (car args)))
+    (moritz/get-repository-resource
+     (cdr (assoc 'href ( assoc 'branches (assoc 'links repo))))
+     'moritz/select-branches-and-run-action
+     '(moritz/run-branches-action))))
+
 (defun moritz/run-repository-action (repo)
   (moritz/helm-run-assoc-function
    '(("pull requests" . moritz/repository-action-pullrequests)
-     ("commits" . moritz/repository-action-commits))
+     ("commits" . moritz/repository-action-commits)
+     ("branches" . moritz/repository-action-branches))
    `(,repo)))
 
 (defun moritz/parse-and-run-repository-action (result)

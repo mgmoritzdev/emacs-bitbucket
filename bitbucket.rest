@@ -2,6 +2,7 @@
 :username = mgmdevptm
 :repo-slug = testrepo
 :pull-request-id = 7
+:commit-hash = 07db936de9e8b469a330a8da3c6903363e1b5804
 :token := (oauth2-token-access-token moritz/bitbucket--token)
 
 # POST /repositories/{username}/{repo_slug}/pullrequests/{pull_request_id}/approve
@@ -18,4 +19,11 @@ Authorization: Bearer :token
 
 # GET /repositories/{username}/{repo_slug}/commits
 GET :bitbucket-v2/repositories/:username/:repo-slug/commits
+Authorization: Bearer :token
+
+# GET /repositories/{username}/{repo_slug}/refs/branches
+GET :bitbucket-v2/repositories/:username/:repo-slug/refs/branches
+Authorization: Bearer :token
+# GET /repositories/{username}/{repo_slug}/diff/{spec}
+GET :bitbucket-v2/repositories/:username/:repo-slug/diff/:commit-hash
 Authorization: Bearer :token
