@@ -210,7 +210,7 @@
        (json-encode `(("type" . "pullrequest")
                       ("message" . ,pullrequest-description)))
        `(,(moritz/content-type-header "application/json"))
-       'message-merge-result)
+       'moritz/message-merge-result)
       )
     )
   )

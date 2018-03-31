@@ -153,8 +153,8 @@
 (defun moritz/repository-action-create-pullrequest (args)
   (let ((repo (car args))
         (pullrequest-url (cdr (assoc 'href (assoc 'pullrequests (assoc 'links repo)))))
-        (source-branch "homolog")
-        (destination-branch "dev")
+        (source-branch "dev")
+        (destination-branch "homolog")
         (pullrequest-title "Dummy pull request"))
     (moritz/post-repository-resource
      pullrequest-url
