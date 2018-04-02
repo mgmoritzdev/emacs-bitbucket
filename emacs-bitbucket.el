@@ -10,7 +10,7 @@
   (let ((url-request-method "GET")
         (endpoint "repositories/%s?pagelen=10&page=2"))
     (oauth2-url-retrieve
-     moritz/bitbucket--token
+     (oauth2-extension--get-token)
      (concat moritz/bitbucket--v2 (format endpoint user))
      callback
      cbargs)))
@@ -22,7 +22,7 @@
         (user (cdr (assoc 'user repo)))
         (repo-slug (cdr (assoc 'repo-slug repo))))
     (oauth2-url-retrieve
-     moritz/bitbucket--token
+     (oauth2-extension-get-token)
      (concat moritz/bitbucket--v2 (format endpoint user repo-slug))
      callback
      cbargs)))
@@ -137,7 +137,7 @@
   "Get repository resource"
   (let ((request-method "GET"))
     (oauth2-url-retrieve
-     moritz/bitbucket--token
+     (oauth2-extension--get-token)
      action
      callback
      cbargs)))
@@ -163,7 +163,7 @@
                                        ("title" . ,pullrequest-title))))
           (request-extra-headers `(,(moritz/content-type-header "application/json")))))
     (oauth2-url-retrieve
-     moritz/bitbucket--token
+     (oauth2-extension--get-token)
      pullrequest-url
      callback
      cbargs
@@ -177,7 +177,7 @@
         (request-data data)
         (request-extra-headers headers))
     (oauth2-url-retrieve
-     moritz/bitbucket--token
+     (oauth2-extension--get-token)
      action
      callback
      cbargs

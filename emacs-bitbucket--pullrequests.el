@@ -11,7 +11,7 @@
   "List bitbucket pullrequests for user and repo"
   (let ((url-request-method "GET"))
     (oauth2-url-retrieve
-     moritz/bitbucket--token
+     (oauth2-extension--get-token)
      (concat moritz/bitbucket--v2 "repositories/" user "/" repo "/pullrequests")
      callback
      cbargs)))
@@ -21,7 +21,7 @@
   (let ((request-method "GET")
         (request-extra-headers headers))
     (oauth2-url-retrieve
-     moritz/bitbucket--token
+     (oauth2-extension--get-token)
      url
      callback
      cbargs
@@ -35,7 +35,7 @@
         (request-data data)
         (request-extra-headers headers))
     (oauth2-url-retrieve
-     moritz/bitbucket--token
+     (oauth2-extension--get-token)
      url
      callback
      nil
@@ -47,7 +47,7 @@
   "Approve the selected pull request"
   (let ((request-method "DELETE"))
     (oauth2-url-retrieve
-     moritz/bitbucket--token
+     (oauth2-extension--get-token)
      url
      callback
      nil
