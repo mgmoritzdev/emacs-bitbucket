@@ -1,6 +1,9 @@
 (require 'oauth2)
-(if (not (boundp 'moritz/bitbucket--v1))
-    (load-file (expand-file-name "token.el")))
+(require 'json)
+(require 'emacs-bitbucket--token)
+(require 'emacs-bitbucket--pullrequests)
+(require 'emacs-bitbucket--branches)
+(require 'emacs-bitbucket--commits)
 
 (defun moritz/list-repository (user callback &optional cbargs)
   "List bitbucket user's repositories"
@@ -85,30 +88,24 @@
     value))
 
 (defun moritz/get-repo-https-url (repo)
-  (cdr (car (car (append (cdr (assoc 'clone
-                                     (assoc 'links repo)))
+  (cdr (car (car (append (moritz/get-resource-link "clone" repo)
                          nil)))))
 
+;; TODO replace with moritz/get-resource-link
 (defun moritz/get-repo-ssh-url (repo)
   (cdr (car (car (cdr (append (cdr (assoc 'clone
                                           (assoc 'links repo)))
                               nil))))))
 
-(defun moritz/parse-json ()
-  (beginning-of-buffer)
-  (search-forward "\n\n")
-  (append '() (json-read)))
-
-(defun moritz/http-status-code ()
-  (message (buffer-substring 10 13)))
-
+;; TODO replace with moritz/get-resource-link
 (defun moritz/repository-action-pullrequests (args)
   (let ((repo (car args)))
     (moritz/get-repository-resource
-     (cdr (assoc 'href ( assoc 'pullrequests (assoc 'links repo))))
+     (cdr (assoc 'href (assoc 'pullrequests (assoc 'links repo))))
      'moritz/select-pullrequest-and-run-action
      '(moritz/run-pullrequest-action))))
 
+;; TODO replace with moritz/get-resource-link
 (defun moritz/repository-action-commits (args)
   (let ((repo (car args)))
     (moritz/get-repository-resource
@@ -116,6 +113,7 @@
      'moritz/select-commits-and-run-action
      '(moritz/run-commits-action))))
 
+;; TODO replace with moritz/get-resource-link
 (defun moritz/repository-action-branches (args)
   (let ((repo (car args)))
     (moritz/get-repository-resource
@@ -151,19 +149,27 @@
 ;; (moritz/repository-action-branches repo)
 ;; this will not work this way
 (defun moritz/repository-action-create-pullrequest (args)
-  (let ((repo (car args))
-        (pullrequest-url (cdr (assoc 'href (assoc 'pullrequests (assoc 'links repo)))))
-        (source-branch "dev")
-        (destination-branch "homolog")
-        (pullrequest-title "Dummy pull request"))
-    (moritz/post-repository-resource
+  (let ((repo (car args)))
+    (let ((pullrequest-url (moritz/get-resource-link "pullrequests"))
+          (source-branch "dev")
+          (destination-branch "homolog")
+          (pullrequest-title "Dummy pull request")
+          (callback 'moritz/diff-result)
+          (request-method "POST")
+          (request-data (json-encode `(("source" .
+                                        (("branch" . (("name" . ,source-branch)))))
+                                       ("destination" .
+                                        (("branch" . (("name" . ,destination-branch)))))
+                                       ("title" . ,pullrequest-title))))
+          (request-extra-headers `(,(moritz/content-type-header "application/json")))))
+    (oauth2-url-retrieve
+     moritz/bitbucket--token
      pullrequest-url
-     (json-encode `(("source" . (("branch" . (("name" . ,source-branch)))))
-                    ("destination" . (("branch" . (("name" . ,destination-branch)))))
-                    ("title" . ,pullrequest-title)))
-     `(,(moritz/content-type-header "application/json"))
-     ;; 'moritz/create-pullrequest-callback)))
-     'moritz/diff-result)))
+     callback
+     cbargs
+     request-method
+     request-data
+     request-extra-headers)))
 
 (defun moritz/post-repository-resource (action data headers callback &optional cbargs)
   "Get repository resource"

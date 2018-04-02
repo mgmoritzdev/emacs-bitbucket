@@ -1,9 +1,14 @@
 :bitbucket-v2 = https://api.bitbucket.org/2.0
-:username = mgmdevptm
-:repo-slug = testrepo
-:pull-request-id = 7
-:commit-hash = 07db936de9e8b469a330a8da3c6903363e1b5804
-:token := (oauth2-token-access-token moritz/bitbucket--token)
+:username := (emacs-bitbucket--test-data-username (emacs-bitbucket--get-test-data))
+:repo-slug := (emacs-bitbucket--test-data-repo-slug (emacs-bitbucket--get-test-data))
+:pull-request-id := (emacs-bitbucket--test-data-pull-request-id (emacs-bitbucket--get-test-data))
+:commit-hash := (emacs-bitbucket--test-data-commit-hash (emacs-bitbucket--get-test-data))
+:destination-commit-hash := (emacs-bitbucket--test-data-destination-commit-hash (emacs-bitbucket--get-test-data))
+:token := (oauth2-token-access-token (oauth2-extension--get-token))
+
+# /repositories/{username}
+GET :bitbucket-v2/repositories/:username?pagelen=30
+Authorization: Bearer :token
 
 # POST /repositories/{username}/{repo_slug}/pullrequests/{pull_request_id}/approve
 POST :bitbucket-v2/repositories/:username/:repo-slug/pullrequests/:pull-request-id/approve
@@ -29,15 +34,21 @@ Authorization: Bearer :token
 GET :bitbucket-v2/repositories/:username/:repo-slug/diff/:commit-hash
 Authorization: Bearer :token
 
+# You may add the -L option in the cURL command to get the result
 # GET /repositories/{username}/{repo_slug}/pullrequests/{pull_request_id}/diff
 GET :bitbucket-v2/repositories/:username/:repo-slug/pullrequests/:pull-request-id/diff
 Authorization: Bearer :token
 Content-Type: text/plain
 
 # Pull request diff redirected url
-GET :bitbucket-v2/mgmdevptm/testrepo/diff/mgmdevptm/testrepo:07db936de9e8%0D8a0a91a7cdcc
+# /:username/:repo-slug/diff/:username/:repo-slug:07db936de9e8%0D8a0a91a7cdcc
+GET :bitbucket-v2/repositories/:username/:repo-slug/diff/:destination-commit-hash
 Authorization: Bearer :token
 Content-Type: text/plain
+
+# GET /repositories/mgmdevptm/testrepo/pullrequests
+GET :bitbucket-v2/repositories/:username/:repo-slug/pullrequests
+Authorization: Bearer :token
 
 # POST /repositories/mgmdevptm/testrepo/pullrequests
 POST :bitbucket-v2/repositories/:username/:repo-slug/pullrequests
@@ -61,3 +72,5 @@ Content-Type: application/json
   },
   "title": "Dummy pullrequest"
 }
+
+curl -i -H Content-Type\:\ text/plain -H Authorization\:\ Bearer\ cXxHDmqtWvgzdVe6jDutWoW39JfsEjyhgm0aIMR3KShVblT_HhhuNQOqXgYzJ3mFb4Kr7omesiw1TKiosPE\= -XGET https\://api.bitbucket.org/2.0/mgmdevptm/testrepo/diff/daa2c350ed87

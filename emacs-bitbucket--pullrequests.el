@@ -156,13 +156,10 @@
    '(lambda () (message "Pull request UNapproved!"))
    '(lambda () (message "Failed to unapprove pull request"))))
 
-(defun moritz/get-pullrequest-link (link-name pullrequest)
-  (cdr (assoc 'href (assoc (intern link-name) (assoc 'links pullrequest)))))
-
 (defun moritz/pullrequest-approve (args)
   (let ((pullrequest (car args)))
     (moritz/send-post
-     (moritz/get-pullrequest-link "approve" pullrequest)
+     (moritz/get-resource-link "approve" pullrequest)
      nil
      nil
      'moritz/message-approve-result)))
@@ -170,13 +167,13 @@
 (defun moritz/pullrequest-unapprove (args)
   (let ((pullrequest (car args)))
     (moritz/send-delete
-     (moritz/get-pullrequest-link  "approve" pullrequest)
+     (moritz/get-resource-link  "approve" pullrequest)
      'moritz/message-unapprove-result)))
 
 (defun moritz/pullrequest-diff (args)
   (let ((pullrequest (car args)))
     (moritz/send-get
-     (moritz/get-pullrequest-link "diff" pullrequest)
+     (moritz/get-resource-link "diff" pullrequest)
      `(,(moritz/content-type-header "text/plain"))
      'moritz/diff-redirect)))
 
@@ -188,8 +185,8 @@
 
 (defun moritz/diff-result (result)
   (let ((buffer (buffer-string)))
-    (get-buffer-create "* diff *")
-    (switch-to-buffer "* diff *")
+    (get-buffer-create "*diff*")
+    (switch-to-buffer "*diff*")
     (erase-buffer)
     (insert (format "%s" buffer))
     (moritz/parse-plain-text)
@@ -197,7 +194,7 @@
 
 (defun moritz/post-example-with-json (pullrequest)
   (moritz/send-post
-   (moritz/get-pullrequest-link "approve" pullrequest)
+   (moritz/get-resource-link "approve" pullrequest)
    (json-encode '(("key1" . "value1")))
    `(,(moritz/content-type-header "application/json"))
    'moritz/message-approve-result))
@@ -206,7 +203,7 @@
   (let ((pullrequest (car args)))
     (let ((pullrequest-description (cdr (assoc 'description pullrequest))))
       (moritz/send-post
-       (moritz/get-pullrequest-link "merge" pullrequest)
+       (moritz/get-resource-link "merge" pullrequest)
        (json-encode `(("type" . "pullrequest")
                       ("message" . ,pullrequest-description)))
        `(,(moritz/content-type-header "application/json"))
@@ -243,7 +240,7 @@
      "diff"
      "approve"
      "statuses")
-   'moritz/get-pullrequest-link
+   'moritz/get-resource-link
    `(,pullrequest)))
 
 ;; (moritz/get-pullrequest-action tmp-pullrequest)
@@ -320,3 +317,5 @@ The actions can be one of the following:
                       (mark)))
         (mark-end (search-forward "\n\n")))
     (kill-region mark-start mark-end)))
+
+(provide 'emacs-bitbucket--pullrequests)

@@ -1,3 +1,5 @@
+(require 'emacs-bitbucket--utils)
+
 (defun moritz/select-branches-and-run-action (result &optional callback)
   (let ((data (moritz/parse-json)))
     (let ((branches-helm-source
@@ -14,3 +16,5 @@
   (message (format "Branch %s target hash: %s"
                    (cdr (assoc 'name branch))
                    (cdr (assoc 'hash (assoc 'target branch))))))
+
+(provide 'emacs-bitbucket--branches)
