@@ -2,13 +2,16 @@
 
 (defun moritz/select-branches-and-run-action (result &optional callback)
   (let ((data (moritz/parse-json)))
+    (setq tmp-branches data)
     (let ((branches-helm-source
            `((name . "Select a branch: ")
              (candidates . ,(mapcar '(lambda (element)
                                        `(,(cdr (assoc 'name element)) . ,element))
                                     (cdr (assoc 'values data))))
              (action . (lambda (candidate)
-                         (funcall callback candidate))))))
+                         (if (functionp callback)
+                             (funcall callback candidate)
+                           candidate))))))
       (helm :sources '(branches-helm-source)))))
 
 

@@ -72,5 +72,3 @@ Content-Type: application/json
   },
   "title": "Dummy pullrequest"
 }
-
-curl -i -H Content-Type\:\ text/plain -H Authorization\:\ Bearer\ cXxHDmqtWvgzdVe6jDutWoW39JfsEjyhgm0aIMR3KShVblT_HhhuNQOqXgYzJ3mFb4Kr7omesiw1TKiosPE\= -XGET https\://api.bitbucket.org/2.0/mgmdevptm/testrepo/diff/daa2c350ed87

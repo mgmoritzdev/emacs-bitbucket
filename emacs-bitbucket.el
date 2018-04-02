@@ -117,14 +117,14 @@
 (defun moritz/repository-action-branches (args)
   (let ((repo (car args)))
     (moritz/get-repository-resource
-     (cdr (assoc 'href ( assoc 'branches (assoc 'links repo))))
+     (moritz/get-resource-link "branches" repo)
      'moritz/select-branches-and-run-action
      '(moritz/run-branches-action))))
 
 (defun moritz/run-repository-action (repo)
   (moritz/helm-run-assoc-function
    '(("List pull requests" . moritz/repository-action-pullrequests)
-     ("Create pull request" . moritz/repository-action-create-pullrequest)
+     ("Create pull request" . moritz/get-branches)
      ("Commits" . moritz/repository-action-commits)
      ("Branches" . moritz/repository-action-branches))
    `(,repo)))
@@ -145,28 +145,33 @@
 (defun moritz/create-pullrequest-callback (result)
   (message (format "%s" result)))
 
-;; (cdr (assoc 'href (assoc 'pullrequests (assoc 'links repo))))
-;; (moritz/repository-action-branches repo)
-;; this will not work this way
-(defun moritz/repository-action-create-pullrequest (args)
+
+(defun moritz/get-branches (args)
   (let ((repo (car args)))
-    (let ((pullrequest-url (moritz/get-resource-link "pullrequests"))
-          (source-branch "dev")
-          (destination-branch "homolog")
-          (pullrequest-title "Dummy pull request")
-          (callback 'moritz/diff-result)
-          (request-method "POST")
-          (request-data (json-encode `(("source" .
-                                        (("branch" . (("name" . ,source-branch)))))
-                                       ("destination" .
-                                        (("branch" . (("name" . ,destination-branch)))))
-                                       ("title" . ,pullrequest-title))))
-          (request-extra-headers `(,(moritz/content-type-header "application/json")))))
+    (oauth2-url-retrieve
+     (oauth2-extension--get-token)
+     (moritz/get-resource-link "branches" repo)
+     'moritz/repository-action-create-pullrequest
+     args)))
+
+(defun moritz/repository-action-create-pullrequest (branches repo)
+  (let* ((source-branch (cdr (assoc 'name (moritz/select-branches-and-run-action branches))))
+         (destination-branch (cdr (assoc 'name (moritz/select-branches-and-run-action branches))))
+         (pullrequest-url (moritz/get-resource-link "pullrequests" repo))
+         (pullrequest-title (read-string "Enter the pull request title: "))
+         (callback 'moritz/diff-result)
+         (request-method "POST")
+         (request-data (json-encode `(("source" .
+                                       (("branch" . (("name" . ,source-branch)))))
+                                      ("destination" .
+                                       (("branch" . (("name" . ,destination-branch)))))
+                                      ("title" . ,pullrequest-title))))
+         (request-extra-headers `(,(moritz/content-type-header "application/json"))))
     (oauth2-url-retrieve
      (oauth2-extension--get-token)
      pullrequest-url
      callback
-     cbargs
+     nil
      request-method
      request-data
      request-extra-headers)))

@@ -6,6 +6,10 @@
   (search-forward "\n\n")
   (json-read))
 
+(defun mortiz/parse-and-run-action (result callback)
+  (let ((data (moritz/parse-json)))
+    (funcall callback data)))
+
 (defun moritz/http-status-code ()
   (message (buffer-substring 10 13)))
 
