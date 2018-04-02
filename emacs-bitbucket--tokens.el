@@ -19,4 +19,4 @@
   (interactive)
   (oauth2-extension-refresh-token))
 
-(provide 'emacs-bitbucket--token)
+(provide 'emacs-bitbucket--tokens)

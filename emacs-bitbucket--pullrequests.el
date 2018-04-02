@@ -312,9 +312,7 @@ The actions can be one of the following:
 
 (defun moritz/parse-plain-text ()
   (let ((mark-start (progn
-                      (beginning-of-buffer)
-                      (set-mark (point))
-                      (mark)))
+                      (goto-char (point-min))))
         (mark-end (search-forward "\n\n")))
     (kill-region mark-start mark-end)))
 

@@ -1,6 +1,13 @@
+(load-file "oauth2-extension.el")
+(load-file "emacs-bitbucket--tokens.el")
+(load-file "emacs-bitbucket--pullrequests.el")
+(load-file "emacs-bitbucket--branches.el")
+(load-file "emacs-bitbucket--commits.el")
+
 (require 'oauth2)
+(require 'oauth2-extension)
 (require 'json)
-(require 'emacs-bitbucket--token)
+(require 'emacs-bitbucket--tokens)
 (require 'emacs-bitbucket--pullrequests)
 (require 'emacs-bitbucket--branches)
 (require 'emacs-bitbucket--commits)
@@ -22,7 +29,7 @@
         (user (cdr (assoc 'user repo)))
         (repo-slug (cdr (assoc 'repo-slug repo))))
     (oauth2-url-retrieve
-     (oauth2-extension-get-token)
+     (oauth2-extension--get-token)
      (concat moritz/bitbucket--v2 (format endpoint user repo-slug))
      callback
      cbargs)))
@@ -150,7 +157,7 @@
   (let ((repo (car args)))
     (oauth2-url-retrieve
      (oauth2-extension--get-token)
-     (moritz/get-resource-link "branches" repo)
+     (concat (moritz/get-resource-link "branches" repo) "?pagelen=30")
      'moritz/repository-action-create-pullrequest
      args)))
 

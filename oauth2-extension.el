@@ -75,4 +75,4 @@ TOKEN should be obtained with `oauth2-request-access'."
       (insert-file-contents filename)
       (car (read-from-string (buffer-string))))))
 
-(provide 'oauth-extension)
+(provide 'oauth2-extension)

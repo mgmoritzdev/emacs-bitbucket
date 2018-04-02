@@ -27,7 +27,7 @@ GET :bitbucket-v2/repositories/:username/:repo-slug/commits
 Authorization: Bearer :token
 
 # GET /repositories/{username}/{repo_slug}/refs/branches
-GET :bitbucket-v2/repositories/:username/:repo-slug/refs/branches
+GET :bitbucket-v2/repositories/:username/:repo-slug/refs/branches?pagelen=30
 Authorization: Bearer :token
 
 # GET /repositories/{username}/{repo_slug}/diff/{spec}
