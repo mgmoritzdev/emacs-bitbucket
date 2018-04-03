@@ -60,15 +60,24 @@ Content-Type: application/json
   {
     "branch":
     {
-      "name": "homolog"
+      "name": "branch1"
     }
   },
   "destination":
   {
     "branch":
     {
-      "name": "dev"
+      "name": "master"
     }
   },
+  "reviewers": [
+    {
+      "uuid": "{c24a8446-194c-40f9-90bd-0146a3a306a6}"
+    }
+  ],
   "title": "Dummy pullrequest"
 }
+
+# GET /2.0/teams/{username}/members
+GET :bitbucket-v2/teams/:username/members
+Authorization: Bearer :token
