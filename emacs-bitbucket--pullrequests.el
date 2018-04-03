@@ -212,12 +212,20 @@
     )
   )
 
+(defun moritz/pullrequest-details (args)
+  (let ((pullrequest (car args))
+        (pullrequest-buffer "*pull request*"))
+    (with-current-buffer (get-buffer-create pullrequest-buffer)
+      (switch-to-buffer pullrequest-buffer)
+      (insert (format "%S" pullrequest)))))
+
 (defun moritz/run-pullrequest-action (pullrequest)
   (moritz/helm-run-assoc-function
    '(("unapprove" . moritz/pullrequest-unapprove)
      ("approve" . moritz/pullrequest-approve)
      ("diff" . moritz/pullrequest-diff)
      ("merge" . moritz/pullrequest-merge)
+     ("details" . moritz/pullrequest-details)
      ;; ("decline" . moritz/pullrequest-decline)
      ;; ("commits" . moritz/pullrequest-commits)
      ;; ("self" . moritz/pullrequest-self)
