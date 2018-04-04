@@ -73,9 +73,16 @@ Content-Type: application/json
   "reviewers": [
     {
       "uuid": "{c24a8446-194c-40f9-90bd-0146a3a306a6}"
+    },
+    {
+      "uuid": "{d88c1c7c-0cb0-497e-897c-2188f3984646}"
+    },
+    {
+      "uuid": "{ef6b5cd7-7dfc-498d-a596-3316a179c36a}"
     }
   ],
-  "title": "Dummy pullrequest"
+  "title": "Dummy pullrequest",
+  "close_source_branch": true
 }
 
 # GET /2.0/teams/{username}/members

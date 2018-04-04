@@ -172,7 +172,8 @@
                                        (("branch" . (("name" . ,source-branch)))))
                                       ("destination" .
                                        (("branch" . (("name" . ,destination-branch)))))
-                                      ("title" . ,pullrequest-title))))
+                                      ("title" . ,pullrequest-title)
+                                      ("close_source_branch" . t))))
          (request-extra-headers `(,(moritz/content-type-header "application/json"))))
     (oauth2-url-retrieve
      (oauth2-extension--get-token)
