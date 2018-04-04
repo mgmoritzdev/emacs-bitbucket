@@ -209,9 +209,11 @@ The actions can be one of the following:
   - merge
 "
   (interactive)
-  (let  ((repo-data (get-user-and-repo-slug)))
-    (moritz/get-repository repo-data
-                           'moritz/parse-and-run-repository-action)))
+  (let  ((repo-data (moritz/get-user-and-repo-slug)))
+    (condition-case nil
+        (moritz/get-repository repo-data
+                               'moritz/parse-and-run-repository-action)
+      (error (message "Failed to get repository")))))
 
 ;; tests and examples
 ;; call from a file in some bitbucket repository: M-x bitbucket-actions
@@ -220,3 +222,5 @@ The actions can be one of the following:
 ;; magit - add a button to bitbucket
 ;; DONE pr - list pr's for this project
 ;; diff-pr - show the diff between merging branches
+
+(provide 'emacs-bitbucket)

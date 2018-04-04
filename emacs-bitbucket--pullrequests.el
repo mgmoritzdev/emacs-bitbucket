@@ -285,38 +285,41 @@ The actions can be one of the following:
   * statuses (not implemented)
 "
   (interactive)
-  (let  ((repo-data (get-user-and-repo-slug)))
+  (let  ((repo-data (moritz/get-user-and-repo-slug)))
     (moritz/list-pullrequests (cdr (assoc 'user repo-data))
                               (cdr (assoc 'repo-slug repo-data))
                               'moritz/select-pullrequest-and-run-action
                               '(moritz/run-pullrequest-action))))
 
-(defun get-user-and-repo-slug ()
-  (let ((default-directory (vc-root-dir))
-        (git-ssh-regexp "^git\@")
-        (git-https-regexp "^https"))
-    (let ((remotes (split-string (shell-command-to-string "git remote -v")))
-          (remote nil))
-      (while remotes
-        (let ((test-remote (car remotes)))
-          (setq remotes (cdr remotes))
-          (cond ((string= test-remote "origin")
-                 (setq remote (car remotes))))))
-      (cond ((string-match-p git-ssh-regexp remote)
-             (save-match-data
-               (and (string-match "\\`.+:\\([^:]+\\)\/\\([^\/]+\\)\.git\\'" remote)
-                    (let ((user (match-string 1 remote))
-                          (repo-slug (match-string 2 remote)))
-                      `((user . ,user)
-                        (repo-slug . ,repo-slug))
-                      ))))
-            ((string-match-p git-https-regexp remote)
-             (save-match-data
-               (and (string-match "\\`.+\/\\([^\/]+\\)\/\\([^\/]+\\)\\'" remote)
-                    (let ((user (match-string 1 remote))
-                          (repo-slug (replace-regexp-in-string "\.git" "" (match-string 2 remote))))
-                      `((user . ,user)
-                        (repo-slug . ,repo-slug))))))))))
+(defun moritz/get-user-and-repo-slug ()
+  (condition-case nil
+      (let ((default-directory (vc-root-dir))
+            (git-ssh-regexp "^git\@")
+            (git-https-regexp "^https"))
+        (let ((remotes (split-string (shell-command-to-string "git remote -v")))
+              (remote nil))
+          (while remotes
+            (let ((test-remote (car remotes)))
+              (setq remotes (cdr remotes))
+              (cond ((string= test-remote "origin")
+                     (setq remote (car remotes))))))
+          (cond ((string-match-p git-ssh-regexp remote)
+                 (save-match-data
+                   (and (string-match "\\`.+:\\([^:]+\\)\/\\([^\/]+\\)\.git\\'" remote)
+                        (let ((user (match-string 1 remote))
+                              (repo-slug (match-string 2 remote)))
+                          `((user . ,user)
+                            (repo-slug . ,repo-slug))
+                          ))))
+                ((string-match-p git-https-regexp remote)
+                 (save-match-data
+                   (and (string-match "\\`.+\/\\([^\/]+\\)\/\\([^\/]+\\)\\'" remote)
+                        (let ((user (match-string 1 remote))
+                              (repo-slug (replace-regexp-in-string "\.git" "" (match-string 2 remote))))
+                          `((user . ,user)
+                            (repo-slug . ,repo-slug)))))))))
+    (error (message "Could not get repository associated with the current directory"))
+    ))
 
 (defun moritz/parse-plain-text ()
   (let ((mark-start (progn
