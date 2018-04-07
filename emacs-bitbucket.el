@@ -22,17 +22,13 @@
      callback
      cbargs)))
 
-(defun moritz/get-repository (repo callback &optional cbargs)
-  "List bitbucket user's repositories"
-  (let ((url-request-method "GET")
-        (endpoint "repositories/%s/%s")
-        (user (cdr (assoc 'user repo)))
-        (repo-slug (cdr (assoc 'repo-slug repo))))
-    (oauth2-url-retrieve
-     (oauth2-extension--get-token)
-     (concat moritz/bitbucket--v2 (format endpoint user repo-slug))
-     callback
-     cbargs)))
+(defun moritz/get-repository (user repo-slug callback &optional cbargs)
+  "Get repository data"
+  (let ((url (moritz/get-url 'repository `(,user ,repo-slug))))
+    (emacs-bitbucket--request url
+                              callback
+                              'json-read
+                              cbargs)))
 
 (defun moritz/parse-repositories (result)
   (let ((request-data (moritz/parse-json))
@@ -128,17 +124,20 @@
      'moritz/select-branches-and-run-action
      '(moritz/run-branches-action))))
 
-(defun moritz/run-repository-action (repo)
+(defun moritz/run-repository-action (args)
   (moritz/helm-run-assoc-function
    '(("List pull requests" . moritz/repository-action-pullrequests)
      ("Create pull request" . moritz/get-branches)
      ("Commits" . moritz/repository-action-commits)
      ("Branches" . moritz/repository-action-branches))
-   `(,repo)))
+   args))
 
 (defun moritz/parse-and-run-repository-action (result)
-  (let ((repo (moritz/parse-json)))
-    (moritz/run-repository-action repo)))
+  ;; (setq tmp-result result)
+  (condition-case nil
+      (let ((repo (moritz/parse-json)))
+        (moritz/run-repository-action repo))
+    (error (message "%s" (assoc 'error result)))))
 
 (defun moritz/get-repository-resource (action callback &optional cbargs)
   "Get repository resource"
@@ -173,6 +172,9 @@
                                       ("destination" .
                                        (("branch" . (("name" . ,destination-branch)))))
                                       ("title" . ,pullrequest-title)
+                                      ("reviewers" . ((("uuid" . "{c24a8446-194c-40f9-90bd-0146a3a306a6}"))
+                                                      (("uuid" . "{d88c1c7c-0cb0-497e-897c-2188f3984646}"))
+                                                      (("uuid" . "{ef6b5cd7-7dfc-498d-a596-3316a179c36a}"))))
                                       ("close_source_branch" . t))))
          (request-extra-headers `(,(moritz/content-type-header "application/json"))))
     (oauth2-url-retrieve
@@ -211,8 +213,9 @@ The actions can be one of the following:
   (interactive)
   (let  ((repo-data (moritz/get-user-and-repo-slug)))
     (condition-case nil
-        (moritz/get-repository repo-data
-                               'moritz/parse-and-run-repository-action)
+        (moritz/get-repository (cdr (assoc 'user repo-data))
+                               (cdr (assoc 'repo-slug repo-data))
+                               'moritz/run-repository-action)
       (error (message "Failed to get repository")))))
 
 ;; tests and examples

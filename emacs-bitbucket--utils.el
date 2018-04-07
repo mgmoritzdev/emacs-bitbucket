@@ -1,6 +1,28 @@
 (require 'json)
 (require 'cl)
 
+(defun emacs-bitbucket--request (url callback parser &optional cbargs method extra-headers)
+  (lexical-let* ((callback callback)
+                 (cbargs cbargs)
+                 (headers (append extra-headers `(,(moritz/get-authorization-header))))
+                 (success-callback (cl-function
+                                    (lambda (&key data &allow-other-keys)
+                                      (funcall callback (append `(,data) cbargs)))))
+                 (error-callback (cl-function (lambda (&rest args &key error-thrown &allow-other-keys)
+                                                (if (string= (format "%s" error-thrown) "(error http 401)")
+                                                    (progn
+                                                      (oauth2-extension-refresh-token)
+                                                      ;; 'emacs-bitbucket--request
+                                                      ;; (cons url callback parser cbargs method extra-headers)
+                                                      ))))))
+    (request
+     url
+     :type method
+     :headers headers
+     :parser parser
+     :success success-callback
+     :error error-callback)))
+
 (defun moritz/parse-json ()
   (goto-char (point-min))
   (search-forward "\n\n")
@@ -38,5 +60,23 @@
 
 (if (file-exists-p (expand-file-name ".secrets"))
     (load-file ".secrets"))
+
+(defun moritz/get-token ()
+  (oauth2-token-access-token (oauth2-extension--get-token)))
+
+(defun moritz/get-authorization-header ()
+  (moritz/authorization-header (moritz/get-token)))
+
+(defun moritz/get-url (endpoint &optional args)
+  (concat
+   moritz/bitbucket--v2
+   (apply 'format (append `(,(cdr (assoc endpoint moritz/endpoints))) args))))
+
+;; (moritz/get-url 'repository '("mgmdevptm" "testrepo"))
+;; (moritz/get-url 'repositories)
+
+(defvar moritz/endpoints
+  '((repositories . "repositories")
+    (repository . "repositories/%s/%s")))
 
 (provide 'emacs-bitbucket--utils)

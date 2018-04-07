@@ -54,11 +54,13 @@
      request-method
      nil)))
 
+(defun moritz/authorization-header (token)
+  "Return 'Authorization: Bearer `token' header."
+  `("Authorization" . ,(format "Bearer %s" token)))
+
 (defun moritz/content-type-header (content-type)
   "Return 'Content-Type: type' header."
   `("Content-Type" . ,(format "%s" content-type)))
-
-(moritz/content-type-header "application/json")
 
 (defun parse-pullrequests-response (result)
   (let ((request-data (moritz/parse-json))
