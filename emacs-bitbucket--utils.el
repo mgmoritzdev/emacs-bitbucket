@@ -1,12 +1,26 @@
 (require 'json)
 (require 'cl)
 
-(defun emacs-bitbucket--request (url callback parser &optional cbargs method extra-headers)
-  (lexical-let* ((callback callback)
+(defun emacs-bitbucket--retrieve (endpoint endpoint-params callback parser &optional cbargs method extra-headers)
+  (if (moritz/has-valid-cache endpoint)
+      (funcall callback (append `(,(moritz/get-cache-value endpoint)) cbargs))
+    (emacs-bitbucket--request endpoint
+                              endpoint-params
+                              callback
+                              parser
+                              cbargs
+                              method
+                              extra-headers)))
+
+(defun emacs-bitbucket--request (endpoint endpoint-params callback parser &optional cbargs method extra-headers)
+  (lexical-let* ((url (moritz/get-url endpoint endpoint-params))
+                 (endpoint endpoint)
+                 (callback callback)
                  (cbargs cbargs)
                  (headers (append extra-headers `(,(moritz/get-authorization-header))))
                  (success-callback (cl-function
                                     (lambda (&key data &allow-other-keys)
+                                      (moritz/save-repository-data endpoint (append '() data))
                                       (funcall callback (append `(,data) cbargs)))))
                  (error-callback (cl-function (lambda (&rest args &key error-thrown &allow-other-keys)
                                                 (if (string= (format "%s" error-thrown) "(error http 401)")

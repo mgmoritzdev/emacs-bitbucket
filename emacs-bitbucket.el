@@ -3,6 +3,7 @@
 (load-file "emacs-bitbucket--pullrequests.el")
 (load-file "emacs-bitbucket--branches.el")
 (load-file "emacs-bitbucket--commits.el")
+(load-file "emacs-bitbucket--cache.el")
 
 (require 'oauth2)
 (require 'oauth2-extension)
@@ -11,6 +12,7 @@
 (require 'emacs-bitbucket--pullrequests)
 (require 'emacs-bitbucket--branches)
 (require 'emacs-bitbucket--commits)
+(require 'emacs-bitbucket--cache)
 
 (defun moritz/list-repository (user callback &optional cbargs)
   "List bitbucket user's repositories"
@@ -24,11 +26,13 @@
 
 (defun moritz/get-repository (user repo-slug callback &optional cbargs)
   "Get repository data"
-  (let ((url (moritz/get-url 'repository `(,user ,repo-slug))))
-    (emacs-bitbucket--request url
-                              callback
-                              'json-read
-                              cbargs)))
+  (let ((endpoint 'repository)
+        (endpoint-params `(,user ,repo-slug)))
+    (emacs-bitbucket--retrieve endpoint
+                               endpoint-params
+                               callback
+                               'json-read
+                               cbargs)))
 
 (defun moritz/parse-repositories (result)
   (let ((request-data (moritz/parse-json))
