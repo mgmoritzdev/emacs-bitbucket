@@ -116,16 +116,19 @@
 (defun moritz/repository-action-commits (args)
   (let ((repo (car args)))
     (moritz/get-repository-resource
-     (cdr (assoc 'href ( assoc 'commits (assoc 'links repo))))
+     (cdr (assoc 'href (assoc 'commits (assoc 'links repo))))
      'moritz/select-commits-and-run-action
      '(moritz/run-commits-action))))
 
 ;; TODO replace with moritz/get-resource-link
 (defun moritz/repository-action-branches (args)
-  (let ((repo (car args)))
-    (moritz/get-repository-resource
-     (moritz/get-resource-link "branches" repo)
+  (let* ((repo (car args))
+         (url (moritz/get-resource-link "branches" repo)))
+    (emacs-bitbucket--retrieve
+     'branches
+     (moritz/get-user-and-repo-slug-list)
      'moritz/select-branches-and-run-action
+     'json-read
      '(moritz/run-branches-action))))
 
 (defun moritz/run-repository-action (args)
@@ -155,7 +158,6 @@
 (defun moritz/create-pullrequest-callback (result)
   (message (format "%s" result)))
 
-
 (defun moritz/get-branches (args)
   (let ((repo (car args)))
     (oauth2-url-retrieve
@@ -164,9 +166,20 @@
      'moritz/repository-action-create-pullrequest
      args)))
 
-(defun moritz/repository-action-create-pullrequest (branches repo)
-  (let* ((source-branch (cdr (assoc 'name (moritz/select-branches-and-run-action branches))))
-         (destination-branch (cdr (assoc 'name (moritz/select-branches-and-run-action branches))))
+(defun moritz/get-branches (args)
+  (let ((repo (car args)))
+    (emacs-bitbucket--retrieve
+     'branches
+     (moritz/get-user-and-repo-slug-list)
+     'moritz/repository-action-create-pullrequest
+     'json-read
+     args)))
+
+(defun moritz/repository-action-create-pullrequest (args)
+  (let* ((branches (car args))
+         (repo (car (cdr args)))
+         (source-branch (cdr (assoc 'name (moritz/select-branches-and-run-action `(,branches)))))
+         (destination-branch (cdr (assoc 'name (moritz/select-branches-and-run-action `(,branches)))))
          (pullrequest-url (moritz/get-resource-link "pullrequests" repo))
          (pullrequest-title (read-string "Enter the pull request title: "))
          (callback 'moritz/diff-result)

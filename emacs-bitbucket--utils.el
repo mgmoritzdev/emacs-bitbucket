@@ -2,7 +2,7 @@
 (require 'cl)
 
 (defun emacs-bitbucket--retrieve (endpoint endpoint-params callback parser &optional cbargs method extra-headers)
-  (if (moritz/has-valid-cache endpoint)
+  (if (and emacs-bitbucket--use-cache (moritz/has-valid-cache endpoint))
       (funcall callback (append `(,(moritz/get-cache-value endpoint)) cbargs))
     (emacs-bitbucket--request endpoint
                               endpoint-params
@@ -91,6 +91,42 @@
 
 (defvar moritz/endpoints
   '((repositories . "repositories")
-    (repository . "repositories/%s/%s")))
+    (repository . "repositories/%s/%s")
+    (branches . "repositories/%s/%s/refs/branches")))
+
+(defun moritz/get-user-and-repo-slug ()
+  (condition-case nil
+      (let ((default-directory (vc-root-dir))
+            (git-ssh-regexp "^git\@")
+            (git-https-regexp "^https"))
+        (let ((remotes (split-string (shell-command-to-string "git remote -v")))
+              (remote nil))
+          (while remotes
+            (let ((test-remote (car remotes)))
+              (setq remotes (cdr remotes))
+              (cond ((string= test-remote "origin")
+                     (setq remote (car remotes))))))
+          (cond ((string-match-p git-ssh-regexp remote)
+                 (save-match-data
+                   (and (string-match "\\`.+:\\([^:]+\\)\/\\([^\/]+\\)\.git\\'" remote)
+                        (let ((user (match-string 1 remote))
+                              (repo-slug (match-string 2 remote)))
+                          `((user . ,user)
+                            (repo-slug . ,repo-slug))
+                          ))))
+                ((string-match-p git-https-regexp remote)
+                 (save-match-data
+                   (and (string-match "\\`.+\/\\([^\/]+\\)\/\\([^\/]+\\)\\'" remote)
+                        (let ((user (match-string 1 remote))
+                              (repo-slug (replace-regexp-in-string "\.git" "" (match-string 2 remote))))
+                          `((user . ,user)
+                            (repo-slug . ,repo-slug)))))))))
+    (error (message "Could not get repository associated with the current directory"))
+    ))
+
+(defun moritz/get-user-and-repo-slug-list ()
+  (let ((data (moritz/get-user-and-repo-slug)))
+    `(,(cdr (assoc 'user data))
+      ,(cdr (assoc 'repo-slug data)))))
 
 (provide 'emacs-bitbucket--utils)
