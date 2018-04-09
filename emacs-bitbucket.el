@@ -24,10 +24,10 @@
      callback
      cbargs)))
 
-(defun moritz/get-repository (user repo-slug callback &optional cbargs)
+(defun moritz/get-repository (callback &optional cbargs)
   "Get repository data"
   (let ((endpoint 'repository)
-        (endpoint-params `(,user ,repo-slug)))
+        (endpoint-params (moritz/get-user-and-repo-slug-list)))
     (emacs-bitbucket--retrieve endpoint
                                endpoint-params
                                callback
@@ -134,7 +134,7 @@
 (defun moritz/run-repository-action (args)
   (moritz/helm-run-assoc-function
    '(("List pull requests" . moritz/repository-action-pullrequests)
-     ("Create pull request" . moritz/get-branches)
+     ("Create pull request" . moritz/get-branches-and-create-pull-request)
      ("Commits" . moritz/repository-action-commits)
      ("Branches" . moritz/repository-action-branches))
    args))
@@ -158,15 +158,7 @@
 (defun moritz/create-pullrequest-callback (result)
   (message (format "%s" result)))
 
-(defun moritz/get-branches (args)
-  (let ((repo (car args)))
-    (oauth2-url-retrieve
-     (oauth2-extension--get-token)
-     (concat (moritz/get-resource-link "branches" repo) "?pagelen=30")
-     'moritz/repository-action-create-pullrequest
-     args)))
-
-(defun moritz/get-branches (args)
+(defun moritz/get-branches-and-create-pull-request (args)
   (let ((repo (car args)))
     (emacs-bitbucket--retrieve
      'branches
@@ -217,7 +209,7 @@
      request-data
      request-extra-headers)))
 
-(defun bitbucket-actions ()
+(defun emacs-bitbucket ()
   "Apply action on the current repository.
 The actions can be one of the following:
   - pull requests
@@ -228,12 +220,9 @@ The actions can be one of the following:
   - merge
 "
   (interactive)
-  (let  ((repo-data (moritz/get-user-and-repo-slug)))
-    (condition-case nil
-        (moritz/get-repository (cdr (assoc 'user repo-data))
-                               (cdr (assoc 'repo-slug repo-data))
-                               'moritz/run-repository-action)
-      (error (message "Failed to get repository")))))
+  (condition-case nil
+      (moritz/get-repository 'moritz/run-repository-action)
+    (error (message "Failed to get repository"))))
 
 ;; tests and examples
 ;; call from a file in some bitbucket repository: M-x bitbucket-actions
