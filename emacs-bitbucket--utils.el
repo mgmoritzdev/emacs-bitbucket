@@ -92,11 +92,11 @@
 
 ;; (moritz/get-url 'repository '("mgmdevptm" "testrepo"))
 ;; (moritz/get-url 'repositories)
-
 (defvar moritz/endpoints
   '((repositories . "repositories")
     (repository . "repositories/%s/%s")
-    (branches . "repositories/%s/%s/refs/branches")))
+    (branches . "repositories/%s/%s/refs/branches")
+    (team-members . "teams/%s/members")))
 
 (defun moritz/get-user-and-repo-slug ()
   (condition-case nil
@@ -132,5 +132,9 @@
   (let ((data (moritz/get-user-and-repo-slug)))
     `(,(cdr (assoc 'user data))
       ,(cdr (assoc 'repo-slug data)))))
+
+(defun moritz/get-user-list ()
+  (let ((data (moritz/get-user-and-repo-slug)))
+    `(,(cdr (assoc 'user data)))))
 
 (provide 'emacs-bitbucket--utils)

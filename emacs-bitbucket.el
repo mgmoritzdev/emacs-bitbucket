@@ -4,6 +4,7 @@
 (load-file "emacs-bitbucket--branches.el")
 (load-file "emacs-bitbucket--commits.el")
 (load-file "emacs-bitbucket--cache.el")
+(load-file "emacs-bitbucket--team-members.el")
 
 (require 'oauth2)
 (require 'oauth2-extension)
@@ -13,6 +14,7 @@
 (require 'emacs-bitbucket--branches)
 (require 'emacs-bitbucket--commits)
 (require 'emacs-bitbucket--cache)
+(require 'emacs-bitbucket--team-members)
 
 (defun moritz/list-repository (user callback &optional cbargs)
   "List bitbucket user's repositories"
@@ -131,12 +133,22 @@
      'json-read
      '(moritz/run-branches-action))))
 
+(defun moritz/repository-action-team-members (args)
+  (let* ((repo (car args)))
+    (emacs-bitbucket--retrieve
+     'team-members
+     (moritz/get-user-list)
+     'moritz/select-team-members-and-run-action
+     'moritz/parse-utf-8
+     '(moritz/get-selected-team-members-uuid))))
+
 (defun moritz/run-repository-action (args)
   (moritz/helm-run-assoc-function
    '(("List pull requests" . moritz/repository-action-pullrequests)
-     ("Create pull request" . moritz/get-branches-and-create-pull-request)
+     ("Create pull request" . moritz/get-team-members-and-create-pull-request)
      ("Commits" . moritz/repository-action-commits)
-     ("Branches" . moritz/repository-action-branches))
+     ("Branches" . moritz/repository-action-branches)
+     ("Teams" . moritz/repository-action-team-members))
    args))
 
 (defun moritz/parse-and-run-repository-action (result)
@@ -158,8 +170,18 @@
 (defun moritz/create-pullrequest-callback (result)
   (message (format "%s" result)))
 
-(defun moritz/get-branches-and-create-pull-request (args)
+(defun moritz/get-team-members-and-create-pull-request (args)
   (let ((repo (car args)))
+    (emacs-bitbucket--retrieve
+     'team-members
+     (moritz/get-user-list)
+     'moritz/get-branches-and-create-pull-request
+     'moritz/parse-utf-8
+     args)))
+
+(defun moritz/get-branches-and-create-pull-request (args)
+  (let ((team-members (car args))
+        (repo (car (cdr args))))
     (emacs-bitbucket--retrieve
      'branches
      (moritz/get-user-and-repo-slug-list)
@@ -169,13 +191,16 @@
 
 (defun moritz/repository-action-create-pullrequest (args)
   (let* ((branches (car args))
-         (repo (car (cdr args)))
+         (team-members (car (cdr args)))
+         (repo (car (cdr (cdr args))))
          (source-branch (cdr (assoc 'name
                                     (moritz/select-branches-and-run-action `(,branches)
                                                                            "Select the source branch: "))))
          (destination-branch (cdr (assoc 'name
                                          (moritz/select-branches-and-run-action `(,branches)
                                                                                 "Select the destination branch: "))))
+         (reviewers (moritz/select-team-members-and-run-action `(,team-members)
+                                                               "Select reviewers: "))
          (pullrequest-url (moritz/get-resource-link "pullrequests" repo))
          (pullrequest-title (read-string "Enter the pull request title: "))
          (callback 'moritz/diff-result)
@@ -185,9 +210,7 @@
                                       ("destination" .
                                        (("branch" . (("name" . ,destination-branch)))))
                                       ("title" . ,pullrequest-title)
-                                      ("reviewers" . ((("uuid" . "{c24a8446-194c-40f9-90bd-0146a3a306a6}"))
-                                                      (("uuid" . "{d88c1c7c-0cb0-497e-897c-2188f3984646}"))
-                                                      (("uuid" . "{ef6b5cd7-7dfc-498d-a596-3316a179c36a}"))))
+                                      ("reviewers" . (,reviewers))
                                       ("close_source_branch" . t))))
          (request-extra-headers `(,(moritz/content-type-header "application/json"))))
     (oauth2-url-retrieve
