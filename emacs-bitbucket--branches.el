@@ -1,4 +1,4 @@
-(require 'emacs-bitbucket--utils)
+(require 'helm)
 
 (defun moritz/select-branches-and-run-action (args &optional prompt)
   "Select a branch in branches and optionally run a callback. The args must contain
@@ -11,8 +11,8 @@ optional parameter prompt overrides de default text."
                    "Select a branch: "))
          (branches-helm-source
           `((name . ,prompt)
-            (candidates . ,(mapcar '(lambda (element)
-                                      `(,(cdr (assoc 'name element)) . ,element))
+            (candidates . ,(mapcar (lambda (element)
+                                     `(,(cdr (assoc 'name element)) . ,element))
                                    (cdr (assoc 'values data))))
             (action . (lambda (candidate)
                         (if (functionp callback)

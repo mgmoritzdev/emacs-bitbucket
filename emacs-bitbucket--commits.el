@@ -4,10 +4,10 @@
   (let ((data (moritz/parse-json)))
     (let ((commits-helm-source
            `((name . "Select a commit: ")
-             (candidates . ,(mapcar '(lambda (element)
-                                       `(,(car (split-string
-                                                (cdr (assoc 'raw (assoc 'summary element)))
-                                                "\\\n")) . ,element))
+             (candidates . ,(mapcar (lambda (element)
+                                      `(,(car (split-string
+                                               (cdr (assoc 'raw (assoc 'summary element)))
+                                               "\\\n")) . ,element))
                                     (cdr (assoc 'values data))))
              (action . (lambda (candidate)
                          (funcall callback candidate))))))
