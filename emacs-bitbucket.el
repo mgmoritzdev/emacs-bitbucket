@@ -49,8 +49,8 @@
   (let ((data (moritz/parse-json)))
     (let ((repositories-helm-source
            `((name . "Select the repository: ")
-             (candidates . ,(mapcar '(lambda (element)
-                                       (cdr (assoc 'name element)))
+             (candidates . ,(mapcar (lambda (element)
+                                      (cdr (assoc 'name element)))
                                     (cdr (assoc 'values data))))
              (action . (lambda (candidate)
                          (moritz/do-something (moritz/get-repo-uuid (moritz/get-repo-by-name data candidate))))))))
@@ -60,8 +60,8 @@
   (let ((data (moritz/parse-json)))
     (let ((repositories-helm-source
            `((name . "Select the repository: ")
-             (candidates . ,(mapcar '(lambda (element)
-                                       (cdr (assoc 'name element)))
+             (candidates . ,(mapcar (lambda (element)
+                                      (cdr (assoc 'name element)))
                                     (cdr (assoc 'values data))))
              (action . (lambda (candidate)
                          (funcall callback (moritz/get-repo-by-name data candidate)))))))
@@ -71,8 +71,8 @@
   (let ((data (moritz/parse-json)))
     (let ((repositories-helm-source
            `((name . "Select the repository: ")
-             (candidates . ,(mapcar '(lambda (element)
-                                       (cdr (assoc 'name element)))
+             (candidates . ,(mapcar (lambda (element)
+                                      (cdr (assoc 'name element)))
                                     (cdr (assoc 'values data))))
              (action . (lambda (candidate)
                          (moritz/do-something (moritz/get-repo-ssh-url (moritz/get-repo-by-name data candidate))))))))
