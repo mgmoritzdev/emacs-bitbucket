@@ -170,8 +170,12 @@
 (defun moritz/repository-action-create-pullrequest (args)
   (let* ((branches (car args))
          (repo (car (cdr args)))
-         (source-branch (cdr (assoc 'name (moritz/select-branches-and-run-action `(,branches)))))
-         (destination-branch (cdr (assoc 'name (moritz/select-branches-and-run-action `(,branches)))))
+         (source-branch (cdr (assoc 'name
+                                    (moritz/select-branches-and-run-action `(,branches)
+                                                                           "Select the source branch: "))))
+         (destination-branch (cdr (assoc 'name
+                                         (moritz/select-branches-and-run-action `(,branches)
+                                                                                "Select the destination branch: "))))
          (pullrequest-url (moritz/get-resource-link "pullrequests" repo))
          (pullrequest-title (read-string "Enter the pull request title: "))
          (callback 'moritz/diff-result)

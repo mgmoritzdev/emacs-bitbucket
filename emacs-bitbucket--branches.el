@@ -1,10 +1,16 @@
 (require 'emacs-bitbucket--utils)
 
-(defun moritz/select-branches-and-run-action (args)
+(defun moritz/select-branches-and-run-action (args &optional prompt)
+  "Select a branch in branches and optionally run a callback. The args must contain
+a list with a branches object in the first element and a callback in the second. The
+optional parameter prompt overrides de default text."
   (let* ((data (car args))
          (callback (car (cdr args)))
+         (prompt (if (stringp prompt)
+                     prompt
+                   "Select a branch: "))
          (branches-helm-source
-          `((name . "Select a branch: ")
+          `((name . ,prompt)
             (candidates . ,(mapcar '(lambda (element)
                                       `(,(cdr (assoc 'name element)) . ,element))
                                    (cdr (assoc 'values data))))
