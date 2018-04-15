@@ -73,11 +73,11 @@
   (let ((data (moritz/parse-json)))
     (let ((commits-helm-source
            `((name . "Select a commit: ")
-             (candidates . ,(mapcar '(lambda (element)
-                                       `(,(car (split-string
-                                                (cdr (assoc 'raw (assoc 'summary element)))
-                                                "\\\n"))
-                                         . ,element))
+             (candidates . ,(mapcar (lambda (element)
+                                      `(,(car (split-string
+                                               (cdr (assoc 'raw (assoc 'summary element)))
+                                               "\\\n"))
+                                        . ,element))
                                     (cdr (assoc 'values data))))
              (action . (lambda (candidate)
                          (funcall callback candidate))))))
@@ -90,7 +90,7 @@
              (candidates
               .
               ,(mapcar
-                '(lambda (element) `(,(concat
+                (lambda (element) `(,(concat
                                   (cdr (assoc 'name (assoc 'branch (assoc 'source element))))
                                   " -> "
                                   (cdr (assoc 'name (assoc 'branch (assoc 'destination element))))
@@ -111,7 +111,7 @@
              (candidates
               .
               ,(mapcar
-                '(lambda (element) `(,(format
+                (lambda (element) `(,(format
                                   "\(%s%s%s\) %s"
                                   (cdr (assoc 'name (assoc 'branch (assoc 'source element))))
                                   (char-to-string #10r10132)
@@ -143,26 +143,26 @@
 
 (defun moritz/message-approve-result (result)
   (moritz/request-status
-   '(lambda () (message "Pull request approved!"))
-   '(lambda () (let ((data (moritz/parse-json)))
+   (lambda () (message "Pull request approved!"))
+   (lambda () (let ((data (moritz/parse-json)))
             (message (cdr (assoc 'message (assoc 'error data))))))))
 
 (defun moritz/message-decline-result (result)
   (moritz/request-status
-   '(lambda () (message "Pull request declined!"))
-   '(lambda () (let ((data (moritz/parse-json)))
+   (lambda () (message "Pull request declined!"))
+   (lambda () (let ((data (moritz/parse-json)))
             (message (cdr (assoc 'message (assoc 'error data))))))))
 
 (defun moritz/message-merge-result (result)
   (moritz/request-status
-   '(lambda () (message "Merge succeded!"))
-   '(lambda () (let ((data (moritz/parse-json)))
+   (lambda () (message "Merge succeded!"))
+   (lambda () (let ((data (moritz/parse-json)))
             (message (cdr (assoc 'message (assoc 'error data))))))))
 
 (defun moritz/message-unapprove-result (result)
   (moritz/request-status
-   '(lambda () (message "Pull request UNapproved!"))
-   '(lambda () (message "Failed to unapprove pull request"))))
+   (lambda () (message "Pull request UNapproved!"))
+   (lambda () (message "Failed to unapprove pull request"))))
 
 (defun moritz/pullrequest-approve (args)
   (let ((pullrequest (car args)))
