@@ -42,6 +42,10 @@
   (search-forward "\n\n")
   (json-read))
 
+(defun moritz/parse-utf-8 ()
+  (json-read-from-string
+   (decode-coding-string (buffer-string) 'utf-8)))
+
 (defun mortiz/parse-and-run-action (result callback)
   (let ((data (moritz/parse-json)))
     (funcall callback data)))

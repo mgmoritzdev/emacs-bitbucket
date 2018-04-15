@@ -147,6 +147,12 @@
    '(lambda () (let ((data (moritz/parse-json)))
             (message (cdr (assoc 'message (assoc 'error data))))))))
 
+(defun moritz/message-decline-result (result)
+  (moritz/request-status
+   '(lambda () (message "Pull request declined!"))
+   '(lambda () (let ((data (moritz/parse-json)))
+            (message (cdr (assoc 'message (assoc 'error data))))))))
+
 (defun moritz/message-merge-result (result)
   (moritz/request-status
    '(lambda () (message "Merge succeded!"))
@@ -165,6 +171,14 @@
      nil
      nil
      'moritz/message-approve-result)))
+
+(defun moritz/pullrequest-decline (args)
+  (let ((pullrequest (car args)))
+    (moritz/send-post
+     (moritz/get-resource-link "decline" pullrequest)
+     nil
+     nil
+     'moritz/message-decline-result)))
 
 (defun moritz/pullrequest-unapprove (args)
   (let ((pullrequest (car args)))
@@ -228,7 +242,7 @@
      ("diff" . moritz/pullrequest-diff)
      ("merge" . moritz/pullrequest-merge)
      ("details" . moritz/pullrequest-details)
-     ;; ("decline" . moritz/pullrequest-decline)
+     ("decline" . moritz/pullrequest-decline)
      ;; ("commits" . moritz/pullrequest-commits)
      ;; ("self" . moritz/pullrequest-self)
      ;; ("comments" . moritz/pullrequest-comments)
