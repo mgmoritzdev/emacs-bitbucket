@@ -100,17 +100,14 @@
   (cdr (car (car (append (moritz/get-resource-link "clone" repo)
                          nil)))))
 
-;; TODO replace with moritz/get-resource-link
 (defun moritz/get-repo-ssh-url (repo)
-  (cdr (car (car (cdr (append (cdr (assoc 'clone
-                                          (assoc 'links repo)))
+  (cdr (car (car (cdr (append (moritz/get-resource-link "clone" repo)
                               nil))))))
 
-;; TODO replace with moritz/get-resource-link
 (defun moritz/repository-action-pullrequests (args)
   (let ((repo (car args)))
     (moritz/get-repository-resource
-     (cdr (assoc 'href (assoc 'pullrequests (assoc 'links repo))))
+     (moritz/get-resource-link "pullrequests" repo)
      'moritz/select-pullrequest-and-run-action
      '(moritz/run-pullrequest-action))))
 

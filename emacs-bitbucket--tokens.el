@@ -14,9 +14,9 @@
 ;;                                  "YOUR-EMAIL-ADDRESS"
 ;;                                  "REDIRECT-URL")
 
-(defun moritz/refresh-token ()
+(defun moritz/refresh-token (&optional callback cbargs)
   "Refresh bitbucket token"
   (interactive)
-  (oauth2-extension-refresh-token))
+  (oauth2-extension-refresh-token callback cbargs))
 
 (provide 'emacs-bitbucket--tokens)

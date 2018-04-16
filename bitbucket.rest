@@ -6,6 +6,16 @@
 :destination-commit-hash := (emacs-bitbucket--test-data-destination-commit-hash (emacs-bitbucket--get-test-data))
 :token := (oauth2-token-access-token (oauth2-extension--get-token))
 
+:token-url := (oauth2-token-token-url (oauth2-extension--get-token))
+:token-client-id := (oauth2-token-client-id (oauth2-extension--get-token))
+:token-client-secret := (oauth2-token-client-secret (oauth2-extension--get-token))
+:token-refresh-token := (oauth2-token-refresh-token (oauth2-extension--get-token))
+
+# POST https://bitbucket.org/site/oauth2/access_token
+POST :token-url
+Content-Type: application/x-www-form-urlencoded
+
+client_id=:token-client-id&client_secret=:token-client-secret&refresh_token=:token-refresh-token&grant_type=refresh_token
 # /repositories/{username}
 GET :bitbucket-v2/repositories/:username?pagelen=30
 Authorization: Bearer :token

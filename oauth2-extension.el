@@ -38,24 +38,51 @@
                (kill-this-buffer)))
            token))))
 
-(defun oauth2-extension-refresh-token ()
+(defun oauth2-extension-refresh-token (&optional callback cbargs)
   "Refresh OAuth access TOKEN"
-  (oauth2-extension-refresh-access (oauth2-extension--get-token)))
+  (oauth2-extension-refresh-access (oauth2-extension--get-token)
+                                   callback
+                                   cbargs))
 
-(defun oauth2-extension-refresh-access (token)
+(defun oauth2-extension-refresh-access (token &optional callback cbargs)
   "Refresh OAuth access TOKEN.
 TOKEN should be obtained with `oauth2-request-access'."
   (let ((previous-access-token (oauth2-token-access-token token)))
+    (oauth2-extension--make-access-request
+     (oauth2-token-token-url token)
+     (concat "client_id=" (oauth2-token-client-id token)
+             "&client_secret=" (oauth2-token-client-secret token)
+             "&refresh_token=" (oauth2-token-refresh-token token)
+             "&grant_type=refresh_token")
+     callback
+     cbargs)))
+
+(defun oauth2-extension--make-access-request (url data &optional callback cbargs)
+  "Make an access request to URL using DATA in POST."
+  (lexical-let* ((callback callback)
+                 (cbargs cbargs)
+                 (data data)
+                 (success-callback (cl-function
+                                    (lambda (&key data &allow-other-keys)
+                                      (oauth2-extension--update-token data)
+                                      (if callback
+                                          (apply callback cbargs)))))
+                 (error-callback (cl-function (lambda (&rest args &key error-thrown &allow-other-keys)
+                                                (message (format "Failed to refresh token. %s" error-thrown))))))
+    (request url
+             :type "POST"
+             :data data
+             :headers '(("Content-Type" . "application/x-www-form-urlencoded"))
+             :parser 'json-read
+             :success success-callback
+             :error error-callback)))
+
+(defun oauth2-extension--update-token (new-token)
+  (let* ((token (oauth2-extension--get-token))
+         (previous-access-token (oauth2-token-access-token token)))
     (setf (oauth2-token-access-token token)
-          (cdr (assoc 'access_token
-                      (oauth2-make-access-request
-                       (oauth2-token-token-url token)
-                       (concat "client_id=" (oauth2-token-client-id token)
-                               "&client_secret=" (oauth2-token-client-secret token)
-                               "&refresh_token=" (oauth2-token-refresh-token token)
-                               "&grant_type=refresh_token")))))
-    (oauth2-extension--save-access-token token previous-access-token)
-    token))
+          (cdr (assoc 'access_token new-token)))
+    (oauth2-extension--save-access-token token previous-access-token)))
 
 (defun oauth2-extension--save-access-token (token previous-access-token)
   (let ((default-directory oauth2-extension--base-dir)

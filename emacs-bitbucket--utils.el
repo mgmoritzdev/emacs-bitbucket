@@ -15,8 +15,12 @@
 (defun emacs-bitbucket--request (endpoint endpoint-params callback parser &optional cbargs method extra-headers)
   (lexical-let* ((url (moritz/get-url endpoint endpoint-params))
                  (endpoint endpoint)
+                 (endpoint-params endpoint-params)
                  (callback callback)
+                 (parser parser)
                  (cbargs cbargs)
+                 (method method)
+                 (extra-headers extra-headers)
                  (headers (append extra-headers `(,(moritz/get-authorization-header))))
                  (success-callback (cl-function
                                     (lambda (&key data &allow-other-keys)
@@ -24,11 +28,14 @@
                                       (funcall callback (append `(,data) cbargs)))))
                  (error-callback (cl-function (lambda (&rest args &key error-thrown &allow-other-keys)
                                                 (if (string= (format "%s" error-thrown) "(error http 401)")
-                                                    (progn
-                                                      (oauth2-extension-refresh-token)
-                                                      ;; 'emacs-bitbucket--request
-                                                      ;; (cons url callback parser cbargs method extra-headers)
-                                                      ))))))
+                                                    (oauth2-extension-refresh-token 'emacs-bitbucket--request
+                                                                                    `(,endpoint
+                                                                                      ,endpoint-params
+                                                                                      ,callback
+                                                                                      ,parser
+                                                                                      ,cbargs
+                                                                                      ,method
+                                                                                      ,extra-headers)))))))
     (request
      url
      :type method
