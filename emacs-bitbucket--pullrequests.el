@@ -172,6 +172,10 @@
      nil
      'moritz/message-approve-result)))
 
+(defun moritz/pullrequest-browse (args)
+  (let ((pullrequest (car args)))
+    (browse-url (moritz/get-resource-link "html" pullrequest))))
+
 (defun moritz/pullrequest-decline (args)
   (let ((pullrequest (car args)))
     (moritz/send-post
@@ -243,6 +247,7 @@
      ("merge" . moritz/pullrequest-merge)
      ("details" . moritz/pullrequest-details)
      ("decline" . moritz/pullrequest-decline)
+     ("browse" . moritz/pullrequest-browse)
      ;; ("commits" . moritz/pullrequest-commits)
      ;; ("self" . moritz/pullrequest-self)
      ;; ("comments" . moritz/pullrequest-comments)
