@@ -5,6 +5,7 @@
 (load-file "emacs-bitbucket--commits.el")
 (load-file "emacs-bitbucket--cache.el")
 (load-file "emacs-bitbucket--team-members.el")
+(load-file "emacs-bitbucket--vc.el")
 
 (require 'oauth2)
 (require 'oauth2-extension)
@@ -15,6 +16,7 @@
 (require 'emacs-bitbucket--commits)
 (require 'emacs-bitbucket--cache)
 (require 'emacs-bitbucket--team-members)
+(require 'emacs-bitbucket--vc)
 
 (defun moritz/list-repository (user callback &optional cbargs)
   "List bitbucket user's repositories"

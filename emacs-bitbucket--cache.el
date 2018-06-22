@@ -3,7 +3,7 @@
 
 (defun moritz/save-repository-data (key value)
   (let* ((key (symbol-name key))
-         (default-directory (concat (vc-root-dir) emacs-bitbucket--cache-directory))
+         (default-directory (concat (get-git-root) emacs-bitbucket--cache-directory))
          (cache-filename (expand-file-name key))
          (save-silently t)
          (data `((data . ,value)
@@ -16,7 +16,7 @@
 
 (defun moritz/get-cache-data (key)
   (let* ((key (symbol-name key))
-         (default-directory (concat (vc-root-dir) emacs-bitbucket--cache-directory))
+         (default-directory (concat (get-git-root) emacs-bitbucket--cache-directory))
          (cache-filename (expand-file-name key)))
     (if (file-exists-p cache-filename)
         (with-current-buffer (find-file-noselect cache-filename)
@@ -32,12 +32,10 @@
   (cdr (assoc 'expire (moritz/get-cache-data key))))
 
 (defun moritz/has-valid-cache (key)
-  (let* ((default-directory (concat (vc-root-dir) emacs-bitbucket--cache-directory))
+  (let* ((default-directory (concat (get-git-root) emacs-bitbucket--cache-directory))
          (cache-filename (expand-file-name (symbol-name key))))
     (if (file-exists-p cache-filename)
         (time-less-p (current-time) (moritz/get-cache-expire-date key))
       nil)))
-
-
 
 (provide 'emacs-bitbucket--cache)

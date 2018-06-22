@@ -107,7 +107,7 @@
 
 (defun moritz/get-user-and-repo-slug ()
   (condition-case nil
-      (let ((default-directory (vc-root-dir))
+      (let ((default-directory (get-git-root))
             (git-ssh-regexp "^git\@")
             (git-https-regexp "^https"))
         (let ((remotes (split-string (shell-command-to-string "git remote -v")))
