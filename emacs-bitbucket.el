@@ -123,14 +123,12 @@
 
 ;; TODO replace with moritz/get-resource-link
 (defun moritz/repository-action-branches (args)
-  (let* ((repo (car args))
-         (url (moritz/get-resource-link "branches" repo)))
-    (emacs-bitbucket--retrieve
-     'branches
-     (moritz/get-user-and-repo-slug-list)
-     'moritz/select-branches-and-run-action
-     'json-read
-     '(moritz/run-branches-action))))
+  (emacs-bitbucket--retrieve
+   'branches
+   (moritz/get-user-and-repo-slug-list)
+   'moritz/select-branches-and-run-action
+   'json-read
+   '(moritz/run-branches-action)))
 
 (defun moritz/repository-action-team-members (args)
   (let* ((repo (car args)))

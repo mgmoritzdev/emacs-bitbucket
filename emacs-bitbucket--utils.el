@@ -102,7 +102,7 @@
 (defvar moritz/endpoints
   '((repositories . "repositories")
     (repository . "repositories/%s/%s")
-    (branches . "repositories/%s/%s/refs/branches")
+    (branches . "repositories/%s/%s/refs/branches?pagelen=100")
     (team-members . "teams/%s/members")))
 
 (defun moritz/get-user-and-repo-slug ()
