@@ -195,13 +195,7 @@
     (moritz/send-get
      (moritz/get-resource-link "diff" pullrequest)
      `(,(moritz/content-type-header "text/plain"))
-     'moritz/diff-redirect)))
-
-(defun moritz/diff-redirect (result)
-  (moritz/send-get
-   (elt result 3)
-   `(,(moritz/content-type-header "text/plain"))
-   'moritz/diff-result))
+     'moritz/diff-result)))
 
 (defun moritz/diff-result (result)
   (let ((buffer (buffer-string)))
