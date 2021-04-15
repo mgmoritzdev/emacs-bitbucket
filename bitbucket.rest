@@ -98,3 +98,8 @@ Content-Type: application/json
 # GET /2.0/teams/{username}/members
 GET :bitbucket-v2/teams/:username/members
 Authorization: Bearer :token
+
+
+# /repositories/{username}
+GET :bitbucket-v2/repositories/:username/:repo-slug/pullrequests
+Authorization: Bearer :token
