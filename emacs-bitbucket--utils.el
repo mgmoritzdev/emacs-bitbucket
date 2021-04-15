@@ -1,5 +1,8 @@
 (require 'json)
-(require 'cl)
+(eval-when-compile (require 'cl))
+(require 'emacs-bitbucket--cache)
+(require 'oauth2-extension)
+
 
 (defun emacs-bitbucket--retrieve (endpoint endpoint-params callback parser &optional cbargs method extra-headers)
   (if (and emacs-bitbucket--use-cache (moritz/has-valid-cache endpoint))
