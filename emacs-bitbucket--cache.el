@@ -1,5 +1,6 @@
+(require 'emacs-bitbucket--vc)
 (defvar emacs-bitbucket--cache-directory ".emacs-bitbucket")
-(defvar emacs-bitbucket--use-cache t)
+(defvar emacs-bitbucket--use-cache nil)
 
 (defun moritz/save-repository-data (key value)
   (let* ((key (symbol-name key))
