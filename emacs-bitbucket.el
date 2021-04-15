@@ -41,9 +41,9 @@
 (defun moritz/parse-repositories (result)
   (let ((request-data (moritz/parse-json))
         (repo-names '()))
-    (mapcar (lambda (element)
-              (push (format "%s" (cdr (assoc 'name element))) repo-names))
-            (cdr (assoc 'values request-data)))
+    (mapc (lambda (element)
+            (push (format "%s" (cdr (assoc 'name element))) repo-names))
+          (cdr (assoc 'values request-data)))
     repo-names))
 
 (defun moritz/select-repository (result &optional cbargs)
@@ -207,9 +207,10 @@
                                       ("destination" .
                                        (("branch" . (("name" . ,destination-branch)))))
                                       ("title" . ,pullrequest-title)
-                                      ("reviewers" . (,reviewers))
+                                      ("reviewers" . ,reviewers)
                                       ("close_source_branch" . t))))
          (request-extra-headers `(,(moritz/content-type-header "application/json"))))
+
     (oauth2-url-retrieve
      (oauth2-extension--get-token)
      pullrequest-url

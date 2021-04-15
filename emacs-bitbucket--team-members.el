@@ -25,6 +25,6 @@ optional parameter prompt overrides de default text."
           (helm-marked-candidates)))
 
 (defun moritz/get-team-member-uuid (team-member)
-  (assoc 'uuid team-member))
+  `(,(assoc 'uuid team-member)))
 
 (provide 'emacs-bitbucket--team-members)
