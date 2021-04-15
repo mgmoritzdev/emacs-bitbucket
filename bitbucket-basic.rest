@@ -1,0 +1,38 @@
+:username := (mopass--get-prop-by-name "bitbucket" 'username)
+:password := (mopass--get-prop-by-name "bitbucket" 'password)
+:repo = monthly.report
+:url = https://api.bitbucket.org/2.0
+:basic := <<
+(base64-encode-string
+  (format "%s:%s"
+          (mopass--get-prop-by-name "bitbucket" 'username)
+          (mopass--get-prop-by-name "bitbucket" 'password)))
+#
+
+#
+GET :url/repositories/ptmtech/:repo/src/development/cloudbuild.yaml
+Authorization: Basic :basic
+
+#
+GET :url/repositories/ptmtech/:repo/src/development/.kube/development.configmap.yaml
+Authorization: Basic :basic
+
+#
+GET :url/repositories/ptmtech/:repo/src/development/.kube/development.deployment.yaml
+Authorization: Basic :basic
+
+#
+GET :url/repositories/ptmtech/:repo/src/development/.kube/development.service.yaml
+Authorization: Basic :basic
+
+#
+GET :url/repositories/ptmtech/:repo/src/development/.kube/development.autoscaler.yaml
+Authorization: Basic :basic
+
+# GET
+GET https://api.bitbucket.org/2.0/repositories/ptmtech/echo/src/development/.kube/development.deployment.yaml
+Authorization: Basic :basic
+
+# GET
+GET https://api.bitbucket.org/2.0/repositories/ptmtech/cicddemo/src/development/.kube/development.configmap.yaml
+Authorization: Basic :basic
