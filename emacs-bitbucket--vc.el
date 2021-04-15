@@ -1,7 +1,9 @@
+(require 'magit)
+
 (defun get-git-root ()
   "Get the current file git root directory"
   (interactive)
-  (dig-for-dotgit (get-location)))
+  (magit-toplevel))
 
 (defun is-root-git-directory (directory)
   (if (member ".git" (directory-files directory)) t nil))
